@@ -41,8 +41,7 @@ def welcome():
                 item['Response Size'],
                 item['User Agent']
             ])
-
-            # 输出表格
+        # 输出表格
         print(table)
 
     else:
