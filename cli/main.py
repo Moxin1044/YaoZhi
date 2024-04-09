@@ -58,8 +58,6 @@ def cli():
         if console_code == '1':
             # pandas DataFrame
             df = pd.DataFrame(data)
-            df.columns = df.iloc[0]
-            df = df[1:]
             # 导出为xlsx文件
             df.to_excel(os.path.dirname(os.getcwd()) + "\\output\\output.xlsx", index=False)
         elif console_code == '2':
