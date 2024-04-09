@@ -16,8 +16,8 @@ python3 Yaozhi.py
 ```
 # 截图
 
-![](document/img/README/image-20240409234909479.png)
+![](./document/img/README/image-20240409234909479.png)
 
-![](document/img/README/image-20240409234946886.png)
+![](./document/img/README/image-20240409234946886.png)
 
-![](document/img/README/image-20240409235016680.png)
+![](./document/img/README/image-20240409235016680.png)
