@@ -65,7 +65,7 @@
                  {% if datas %}
                     {% for data in datas %}
                          <tr>
-                            <td class="no-wrap">{{ data.IP }}</td>
+                            <td class="no-wrap"><a href="https://x.threatbook.com/v5/ip/{{ data.IP }}" target="_blank">{{ data.IP }}</a></td>
                             <td class="no-wrap">{{ data.Time }}</td>
                             <td class="no-wrap">{{ data.Access_Type }}</td>
                             <td class="no-wrap">{{ data.Accessed_Page }}</td>
