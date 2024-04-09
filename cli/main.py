@@ -1,6 +1,7 @@
 import re
 import os
 import core
+import pandas as pd
 from prettytable import PrettyTable
 
 
@@ -9,15 +10,19 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def welcome():
-    print(""" __     __        _______     _ 
- \ \   / /       |___  / |   (_)
-  \ \_/ /_ _  ___   / /| |__  _ 
-   \   / _` |/ _ \ / / | '_ \| |
-    | | (_| | (_) / /__| | | | |
-    |_|\__,_|\___/_____|_| |_|_|
-                                
-                                """)
+def painting():
+    print("""
+     __     __        _______     _ 
+     \ \   / /       |___  / |   (_)
+      \ \_/ /_ _  ___   / /| |__  _ 
+       \   / _` |/ _ \ / / | '_ \| |
+        | | (_| | (_) / /__| | | | |
+        |_|\__,_|\___/_____|_| |_|_|
+
+                                    """)
+
+
+def cli():
     path = input("*>请输入需要分析的日志文件绝对路径：")
     if os.path.exists(path):
         data = core.batch_analysis(path)
@@ -26,7 +31,8 @@ def welcome():
         table = PrettyTable()
 
         # 添加表头
-        table.field_names = ["IP", "Time", "Access Type", "Accessed Page", "HTTP Version", "Response Code", "Response Size", "User Agent"]
+        table.field_names = ["IP", "Time", "Access Type", "Accessed Page", "HTTP Version", "Response Code",
+                             "Response Size", "User Agent"]
 
         # 填充表格数据
         # 填充表格数据
@@ -44,8 +50,25 @@ def welcome():
         # 输出表格
         print(table)
 
+        print("\n继续操作："
+              "\n 1) 将结果导出为out.xlsx"
+              "\n 2) 继续分析其他文件"
+              "\n\n 0) 退出程序")
+        console_code = input("*>请输入操作代码：")
+        if console_code == '1':
+            # pandas DataFrame
+            df = pd.DataFrame(data)
+            df.columns = df.iloc[0]
+            df = df[1:]
+            # 导出为xlsx文件
+            df.to_excel(os.path.dirname(os.getcwd()) + "\\output\\output.xlsx", index=False)
+        elif console_code == '2':
+            cli()
+        else:
+            return 0
     else:
         print(f"文件 {path} 不存在")
 
 
-welcome()
+painting()
+cli()
