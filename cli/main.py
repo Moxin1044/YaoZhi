@@ -59,14 +59,10 @@ def cli():
             # pandas DataFrame
             df = pd.DataFrame(data)
             # 导出为xlsx文件
-            df.to_excel(os.path.dirname(os.getcwd()) + "\\output\\output.xlsx", index=False)
+            df.to_excel(os.getcwd() + "\\output\\output.xlsx", index=False)
         elif console_code == '2':
             cli()
         else:
             return 0
     else:
         print(f"文件 {path} 不存在")
-
-
-painting()
-cli()
