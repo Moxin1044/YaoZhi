@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>遥知 - Web日志分析</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css">
+    <style>
+      h1 {
+          text-align: center;
+      }
+      .button-container {
+          float: right;
+      }
+      .auto-width-table {
+          width: 100%;
+          table-layout: auto;
+      }
+      .no-wrap {
+          white-space: nowrap;
+      }
+      .center-table th {
+          text-align: center;
+      }
+      .center-div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+    <br>
+        <h1>遥知 - Web日志分析</h1>
+        <hr>
+        <form action="/" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">选择分析文件(仅支持*.log文件)：</label>
+                <input type="file" name="file" class="form-control" accept=".log">
+                <div class="button-container">
+                    <input type="submit" value="上传分析" class="btn btn-primary mt-2">
+                </div>
+            </div>
+
+
+        </form>
+        <br><br>
+        <div class="container-fluid center-div">
+            <table class="table center-table">
+            <thead>
+                <tr>
+                    <th class="no-wrap">IP</th>
+                    <th class="no-wrap">时间</th>
+                    <th class="no-wrap">请求类型</th>
+                    <th class="no-wrap">请求页面</th>
+                    <th class="no-wrap">HTTP版本</th>
+                    <th class="no-wrap">状态码</th>
+                    <th class="no-wrap">返回包大小</th>
+                    <th class="no-wrap">UA</th>
+                </tr>
+            </thead>
+            <tbody id="result-table-body">
+                 {% if datas %}
+                    {% for data in datas %}
+                         <tr>
+                            <td class="no-wrap">{{ data.IP }}</td>
+                            <td class="no-wrap">{{ data.Time }}</td>
+                            <td class="no-wrap">{{ data.Access_Type }}</td>
+                            <td class="no-wrap">{{ data.Accessed_Page }}</td>
+                            <td class="no-wrap">{{ data.HTTP_Version }}</td>
+                            <td class="no-wrap">{{ data.Response_Code }}</td>
+                            <td class="no-wrap">{{ data.Response_Size }}</td>
+                            <td class="no-wrap">{{ data.User_Agent }}</td>
+                         </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
+    <script>
+        // 在此处编写 JavaScript 代码来处理查询和填充表格的逻辑
+        // 可以使用 AJAX 或其他方式从服务器获取查询结果，并将结果填充到表格中
+    </script>
+</body>
+</html>

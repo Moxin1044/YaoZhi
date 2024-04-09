@@ -30,12 +30,12 @@ def parse_log_line(line):
     log_dict = {
         'IP': ip,
         'Time': utc_plus_8.strftime("%Y-%m-%d %H:%M:%S"),
-        'Access Type': request_method,
-        'Accessed Page': request_path,
-        'HTTP Version': http_version,
-        'Response Code': response_code,
-        'Response Size': response_size,
-        'User Agent': user_agent
+        'Access_Type': request_method,
+        'Accessed_Page': request_path,
+        'HTTP_Version': http_version,
+        'Response_Code': response_code,
+        'Response_Size': response_size,
+        'User_Agent': user_agent
     }
 
     return log_dict
@@ -49,3 +49,12 @@ def batch_analysis(filename):
         data.append(parse_log_line(l))
     return data
 
+
+def batch_analysis_web(file_read):
+    lines = core.read.read_file_web(file_read)
+    print(f"正在解析日志，该文件共有：{len(lines)}条日志。")
+    data = []
+    for l in tqdm(lines):
+        data.append(parse_log_line(l))
+    print(data)
+    return data

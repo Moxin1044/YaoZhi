@@ -20,3 +20,7 @@ def lines_logs_type(data):
 
 def read_file(filename):
     return lines_logs_type(read_files(filename))
+
+
+def read_file_web(filename):
+    return lines_logs_type(filename)

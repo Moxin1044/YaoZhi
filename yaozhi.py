@@ -1,4 +1,5 @@
 import cli.main
+import web.server
 
 cli.main.painting()
 print("\n请选择："
@@ -10,4 +11,4 @@ console_code = input("*>请输入操作代码：")
 if console_code == '1':
     cli.main.cli()
 elif console_code == '2':
-    pass
+    web.server.app.run(host='0.0.0.0', port=7100)

@@ -6,8 +6,8 @@ from prettytable import PrettyTable
 
 
 # 清屏函数，适用于大多数Unix-like系统（包括Linux和macOS）
-def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
+# def clear_screen():
+#     os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def painting():
@@ -40,12 +40,12 @@ def cli():
             table.add_row([
                 item['IP'],
                 item['Time'],
-                item['Access Type'],
-                item['Accessed Page'],
-                item['HTTP Version'],
-                item['Response Code'],
-                item['Response Size'],
-                item['User Agent']
+                item['Access_Type'],
+                item['Accessed_Page'],
+                item['HTTP_Version'],
+                item['Response_Code'],
+                item['Response_Size'],
+                item['User_Agent']
             ])
         # 输出表格
         print(table)
