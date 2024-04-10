@@ -20,6 +20,9 @@
       .center-table th {
           text-align: center;
       }
+      .center-table td {
+          text-align: center;
+      }
       .center-div {
         display: flex;
         justify-content: center;
@@ -46,19 +49,20 @@
 
 
         </form>
-        <br><br>
+        <br>
+        <h2>日志文件分析</h2>
         <div class="container-fluid center-div">
             <table class="table center-table">
             <thead>
                 <tr>
-                    <th class="no-wrap">IP</th>
+                     <th class="no-wrap">IP</th>
                     <th class="no-wrap">时间</th>
                     <th class="no-wrap">请求类型</th>
                     <th class="no-wrap">请求页面</th>
                     <th class="no-wrap">HTTP版本</th>
                     <th class="no-wrap">状态码</th>
                     <th class="no-wrap">返回包大小</th>
-                    <th class="no-wrap">UA</th>
+<!--                    <th class="no-wrap">UA</th>-->
                 </tr>
             </thead>
             <tbody id="result-table-body">
@@ -72,7 +76,32 @@
                             <td class="no-wrap">{{ data.HTTP_Version }}</td>
                             <td class="no-wrap">{{ data.Response_Code }}</td>
                             <td class="no-wrap">{{ data.Response_Size }}</td>
-                            <td class="no-wrap">{{ data.User_Agent }}</td>
+<!--                            <td class="no-wrap">{{ data.User_Agent }}</td>-->
+                         </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+        </div>
+
+        <br>
+        <h2>IP详情分析</h2>
+        <div class="container-fluid center-div">
+            <table class="table center-table">
+            <thead>
+                <tr>
+                    <th class="no-wrap">IP</th>
+                    <th class="no-wrap">请求频次</th>
+                    <th class="no-wrap">所属国家</th>
+                </tr>
+            </thead>
+            <tbody id="result-table-body">
+                 {% if merged_list %}
+                    {% for list in merged_list %}
+                         <tr>
+                            <td class="no-wrap">{{ list.IP }}</td>
+                            <td class="no-wrap">{{ list.IP_Counts }}</td>
+                            <td class="no-wrap">{{ list.IP_location }}</td>
                          </tr>
                     {% endfor %}
                 {% endif %}

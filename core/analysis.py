@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from collections import Counter
 import requests
 import json
+import ast
 
 
 def parse_log_line(line):
@@ -84,22 +85,40 @@ def calc_ip(data):
 
 def list_ip(data):
     unique_ips_list = list(dict.fromkeys(line['IP'] for line in data))
-    return unique_ips_list # list
+    return unique_ips_list
+
+
+def get_ip_info(ip):
+    response = requests.get(f"https://opendata.baidu.com/api.php?query={ip}&co=&resource_id=6006&oe=utf8")
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        print(f"Response status code: {response.status_code}")
+        return 0
 
 
 def ip_location(data):
     ip_list = list_ip(data)
-    def get_ip_info(ip):
-        response = requests.get(f"https://webapi-pc.meitu.com/common/ip_location?ip={ip}")
-        if response.status_code == 200:
-            data = response.json()
-            return data
-        else:
-            print(f"Response status code: {response.status_code}")
-            return 0
     list_ip_info = []
 
     for ip in ip_list:
-        info = get_ip_info(ip)['data'][f'{ip}']
-        list_ip_info.append({"IP": ip, "IP_nation": info['nation'], "IP_continent": info['continent'], "IP_city": info['city']})
+        info = get_ip_info(ip)['data']
+        if not info:
+            list_ip_info = {"IP": ip, "IP_location": "保留地址/特殊地址"}
+        else:
+            dst = info[0]
+            list_ip_info = {"IP": ip, "IP_location": dst['location']}
     return list_ip_info
+
+
+def get_ip_message(ip):
+    info = get_ip_info(ip)['data']
+    # 去除字符串中的方括号，然后使用ast.literal_eval安全地将其转换为Python对象（在这种情况下是一个列表）
+    if not info:
+        ip_info = {"IP": ip, "IP_location": "保留地址/特殊地址"}
+    else:
+        dst = info[0]
+        ip_info = {"IP": ip, "IP_location": dst['location']}
+    return ip_info
+

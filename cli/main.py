@@ -76,13 +76,11 @@ def cli():
             print(table)
             ip_loc = core.ip_location(data)
             table = PrettyTable()
-            table.field_names = ["IP", "Nation", "Continent", "City"]
+            table.field_names = ["IP", "Nation", "Continent", "City", "ISP"]
             for item in ip_loc:
                 table.add_row([
                     item['IP'],
-                    item['IP_nation'],
-                    item['IP_continent'],
-                    item['IP_city']
+                    item['IP_location']
                 ])
             print(table)
         else:
