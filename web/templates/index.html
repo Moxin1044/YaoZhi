@@ -132,7 +132,7 @@
                  {% if merged_list %}
                     {% for list in merged_list %}
                          <tr>
-                            <td class="no-wrap">{{ list.IP }}</td>
+                            <td class="no-wrap"><a href="https://x.threatbook.com/v5/ip/{{ list.IP }}" target="_blank">{{ list.IP }}</a></td>
                             <td class="no-wrap">{{ list.IP_Counts }}</td>
                             <td class="no-wrap">{{ list.IP_location }}</td>
                          </tr>
