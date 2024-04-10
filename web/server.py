@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import core
 
 app = Flask(__name__)
@@ -12,6 +12,9 @@ def index():
         if 'file' in request.files:
             # 处理上传的文件
             file = request.files['file']
+            # 检查文件扩展名是否为 .log
+            if not file.filename.endswith('.log'):
+                return jsonify({'error': 'Only .log files are allowed'}), 400
             content = file.read().decode()
             data = core.batch_analysis_web(content)
             ip_calc = core.calc_ip(data)
