@@ -1,6 +1,9 @@
 import core.read
 from tqdm import tqdm
 from datetime import datetime, timedelta, timezone
+from collections import Counter
+import requests
+import json
 
 
 def parse_log_line(line):
@@ -58,3 +61,45 @@ def batch_analysis_web(file_read):
         data.append(parse_log_line(l))
     print(data)
     return data
+
+
+def calc_ip(data):
+    # 提取IP并统计出现次数
+    ip_counts = Counter((line['IP'] for line in data))
+
+    # 根据IP和Time创建一个排序键函数
+    def sort_key(ip):
+        count = ip_counts[ip]
+        latest_time = max(datetime.strptime(line['Time'], "%Y-%m-%d %H:%M:%S") for line in data if line['IP'] == ip)
+        return (-count, latest_time)
+
+    # 提取所有唯一的IP地址，并根据sort_key进行排序
+    sorted_ips = sorted(ip_counts.keys(), key=sort_key)
+    ip_list = []
+    # 打印排序后的IP列表
+    for ip in sorted_ips:
+        ip_list.append({"IP": ip, "IP_Counts": ip_counts[ip]})
+    return ip_list
+
+
+def list_ip(data):
+    unique_ips_list = list(dict.fromkeys(line['IP'] for line in data))
+    return unique_ips_list # list
+
+
+def ip_location(data):
+    ip_list = list_ip(data)
+    def get_ip_info(ip):
+        response = requests.get(f"https://webapi-pc.meitu.com/common/ip_location?ip={ip}")
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            print(f"Response status code: {response.status_code}")
+            return 0
+    list_ip_info = []
+
+    for ip in ip_list:
+        info = get_ip_info(ip)['data'][f'{ip}']
+        list_ip_info.append({"IP": ip, "IP_nation": info['nation'], "IP_continent": info['continent'], "IP_city": info['city']})
+    return list_ip_info

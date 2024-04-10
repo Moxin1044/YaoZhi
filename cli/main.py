@@ -53,6 +53,7 @@ def cli():
         print("\n继续操作："
               "\n 1) 将结果导出为out.xlsx"
               "\n 2) 继续分析其他文件"
+              "\n 3) 统计IP频次与地址"
               "\n\n 0) 退出程序")
         console_code = input("*>请输入操作代码：")
         if console_code == '1':
@@ -62,6 +63,28 @@ def cli():
             df.to_excel(os.getcwd() + "\\output\\output.xlsx", index=False)
         elif console_code == '2':
             cli()
+        elif console_code == '3':
+            ip_calc = core.calc_ip(data)
+            table = PrettyTable()
+            table.field_names = ["IP", "Counts"]
+            for item in ip_calc:
+                table.add_row([
+                    item['IP'],
+                    item['IP_Counts']
+                ])
+            # 输出表格
+            print(table)
+            ip_loc = core.ip_location(data)
+            table = PrettyTable()
+            table.field_names = ["IP", "Nation", "Continent", "City"]
+            for item in ip_loc:
+                table.add_row([
+                    item['IP'],
+                    item['IP_nation'],
+                    item['IP_continent'],
+                    item['IP_city']
+                ])
+            print(table)
         else:
             return 0
     else:
