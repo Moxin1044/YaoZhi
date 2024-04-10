@@ -16,6 +16,25 @@
       }
       .no-wrap {
           white-space: nowrap;
+          max-width: 100px; /* 或你需要的任何宽度 */
+          overflow: hidden;
+          text-overflow: ellipsis;
+          position: relative; /* 为了定位工具提示 */
+          cursor: pointer; /* 当鼠标悬停时显示手形图标 */
+      }
+      .no-wrap[data-tooltip]:hover:after {
+          content: attr(data-tooltip);
+          position: absolute;
+          left: 0;
+          top: 100%;
+          padding: 4px 8px;
+          color: #333;
+          background-color: #f8f8f8;
+          border: 1px solid #ddd;
+          border-radius: 3px;
+          font-size: 14px;
+          white-space: normal;
+          z-index: 1;
       }
       .center-table th {
           text-align: center;
@@ -31,6 +50,20 @@
 
 
     </style>
+    <script>
+        function copyText(element) {
+            /* 获取要复制的文本 */
+            var text = element.getAttribute('title');
+            navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              window.alert("复制成功");
+            })
+            .catch((error) => {
+              window.alert("复制失败", error);
+            });
+        }
+    </script>
 </head>
 <body>
 
@@ -72,7 +105,7 @@
                             <td class="no-wrap"><a href="https://x.threatbook.com/v5/ip/{{ data.IP }}" target="_blank">{{ data.IP }}</a></td>
                             <td class="no-wrap">{{ data.Time }}</td>
                             <td class="no-wrap">{{ data.Access_Type }}</td>
-                            <td class="no-wrap">{{ data.Accessed_Page }}</td>
+                            <td class="no-wrap" onclick="copyText(this)" title="{{ data.Accessed_Page }}">{{ data.Accessed_Page | truncate(15) }}</td>
                             <td class="no-wrap">{{ data.HTTP_Version }}</td>
                             <td class="no-wrap">{{ data.Response_Code }}</td>
                             <td class="no-wrap">{{ data.Response_Size }}</td>
