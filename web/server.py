@@ -376,6 +376,54 @@ def api_get_logs_count():
     return redirect(url_for('admin_login'))
 
 
+@app.route('/api/get_users_count', methods=['GET'])
+def api_get_users_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute('SELECT id FROM users')
+        ret_data = {"count": cursor.fetchall().__len__()}
+        # 返回日志列表作为JSON响应
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_tasks_count', methods=['GET'])
+def api_get_tasks_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute('SELECT id FROM tasks')
+        ret_data = {"count": cursor.fetchall().__len__()}
+        # 返回日志列表作为JSON响应
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_task_true_count', methods=['GET'])
+def api_get_tasks_true_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute('SELECT id FROM tasks WHERE status ==""')
+        ret_data = {"count": cursor.fetchall().__len__()}
+        # 返回日志列表作为JSON响应
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
