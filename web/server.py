@@ -229,5 +229,31 @@ def admin_home():
     return redirect(url_for('admin_login'))
 
 
+@app.route('/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/settings/Settings.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/admin/settings/Modify_Password', methods=['GET', 'POST'])
+def admin_settings_Modify_Password():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/settings/Modify_Password.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
