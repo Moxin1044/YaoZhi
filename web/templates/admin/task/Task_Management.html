@@ -1,45 +1,193 @@
 <!DOCTYPE html>
 <html lang="zh">
 
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-  <title>任务管理</title>
-<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-touch-fullscreen" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/materialdesignicons.min.css')  }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css')  }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css')  }}">
-</head>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+		<title>任务管理</title>
+		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-touch-fullscreen" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<link rel="stylesheet" type="text/css"
+			href="{{ url_for('static', filename='css/materialdesignicons.min.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css') }}">
+	</head>
 
-<body>
-  <div class="container-fluid">
+	<body>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="card">
+						<header class="card-header">
+							<div class="card-title">任务管理</div>
+						</header>
+						<div class="card-body">
+							<!-- 搜索框 -->
+							<form method="get" class="mb-3">
+								<div class="input-group">
+									<input type="text" class="form-control" placeholder="搜索任务..." name="search"
+										value="{{ request.args.get('search', '') }}">
+									<div class="input-group-append">
+										<button class="btn btn-primary" type="submit">搜索</button>
+									</div>
+								</div>
+							</form>
 
-    <div class="row">
+							<!-- 表格 -->
+							<form id="task-form" method="post">
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+												<th><input type="checkbox" id="select-all"></th>
+												<th>任务ID</th>
+												<th>状态</th>
+												<th>进度</th>
+												<th>创建时间</th>
+												<th>操作</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for task in tasks %}
+											<tr>
+												<td><input type="checkbox" name="selected_ids" value="{{ task.id }}">
+												</td>
+												<td>{{ task.task_id }}</td>
+												<td>{{ task.status }}</td>
+												<td>{{ task.progress }}%</td>
+												<td>{{ task.timestamp }}</td>
+												<td>
+													{#                        <a href="{{ url_for('admin_task_details', task_id=task.task_id) }}" class="btn btn-info btn-sm">查看详情</a>#}
+													<button class="btn btn-danger btn-sm delete-task"
+														data-task-id="{{ task.id }}">删除</button>
+													<a href="{{ url_for('admin_task_download', task_id=task.task_id) }}"
+														class="btn btn-success btn-sm">下载</a>
+												</td>
+											</tr>
+											{% endfor %}
+										</tbody>
+									</table>
+								</div>
 
-      <div class="col-lg-12">
-        <div class="card">
-          <header class="card-header">
-            <div class="card-title"> 任务管理                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </div>
-          </header>
-          <div class="card-body">
-            <!-- 主要功能 -->
-          </div>
+								<!-- 删除和清空按钮 -->
+								<div class="d-flex justify-content-between">
+									<button type="button" class="btn btn-danger" id="delete-selected">删除选中</button>
+									<button type="button" class="btn btn-warning" id="clear-all">清空</button>
+								</div>
+							</form>
 
-        </div>
-      </div>
+							<!-- 分页 -->
+							<nav aria-label="Page navigation">
+								<ul class="pagination justify-content-center mt-4">
+									{% if current_page > 1 %}
+									<li class="page-item"><a class="page-link"
+											href="{{ url_for('admin_task_Management', page=1) }}">首页</a></li>
+									<li class="page-item"><a class="page-link"
+											href="{{ url_for('admin_task_Management', page=current_page-1) }}">上一页</a>
+									</li>
+									{% endif %}
+									<li class="page-item disabled"><span class="page-link">页 {{ current_page }} /
+											{{ total_pages }}</span></li>
+									{% if current_page < total_pages %}
+									<li class="page-item"><a class="page-link"
+											href="{{ url_for('admin_task_Management', page=current_page + 1) }}">下一页</a>
+									</li>
+									<li class="page-item"><a class="page-link"
+											href="{{ url_for('admin_task_Management', page=total_pages) }}">尾页</a></li>
+									{% endif %}
+								</ul>
+							</nav>
 
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-    </div>
-  </div>
-  </div>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/main.min.js')  }}"></script>
-</body>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+		<script>
+			// 删除按钮点击事件
+			$('.delete-task').click(function() {
+				var taskId = $(this).data('task-id'); // 获取 task_id
+				var confirmation = confirm("确认删除此任务？");
+
+				if (confirmation) {
+					$.ajax({
+						url: '/admin/task/delete',
+						type: 'POST',
+						data: {
+							'ids[]': taskId
+						}, // 发送被选中的任务ID
+						success: function(response) {
+							if (response.status === 'success') {
+								alert(response.message); // 成功提示
+								location.reload(); // 刷新页面，或更新表格
+							} else {
+								alert(response.message); // 错误提示
+							}
+						},
+						error: function(xhr, status, error) {
+							alert('删除失败，请稍后重试');
+						}
+					});
+				}
+			});
+
+			// 处理全选/取消全选
+			$('#select-all').click(function() {
+				$('input[name="selected_ids"]').prop('checked', this.checked);
+			});
+
+			// 删除选中任务
+			$('#delete-selected').click(function() {
+				const selectedIds = $('input[name="selected_ids"]:checked').map(function() {
+					return this.value;
+				}).get();
+
+				if (selectedIds.length > 0) {
+					if (confirm('确认删除选中的任务？')) {
+						$.ajax({
+							url: '/admin/task/delete',
+							method: 'POST',
+							data: {
+								ids: selectedIds
+							},
+							success: function(response) {
+								alert('删除成功');
+								location.reload(); // 刷新页面
+							},
+							error: function() {
+								alert('删除失败');
+							}
+						});
+					}
+				} else {
+					alert('请先选择任务');
+				}
+			});
+
+			// 处理清空操作
+			$('#clear-all').click(function() {
+				if (confirm('确认清空所有任务？')) {
+					// 清空任务的AJAX请求或表单提交
+					$.ajax({
+						url: '/admin/task/clear_all',
+						method: 'POST',
+						success: function(response) {
+							alert('清空成功');
+							location.reload();
+						},
+						error: function() {
+							alert('清空失败');
+						}
+					});
+				}
+			});
+		</script>
+	</body>
 
 </html>
