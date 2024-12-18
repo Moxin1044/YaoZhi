@@ -1,45 +1,212 @@
 <!DOCTYPE html>
 <html lang="zh">
 
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-  <title>用户管理</title>
-<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-touch-fullscreen" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/materialdesignicons.min.css')  }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css')  }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css')  }}">
-</head>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+		<title>用户管理</title>
+		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/style.min.css') }}">
+	</head>
 
-<body>
-  <div class="container-fluid">
+	<body>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="card">
+						<header class="card-header">
+							<div class="card-title"> 用户管理 </div>
+						</header>
+						<div class="card-body">
+							<!-- 搜索框 -->
+							<form action="{{ url_for('admin_personne_User_Management') }}" method="get">
+								<div class="input-group mb-3">
+									<input type="text" class="form-control" name="search" placeholder="搜索用户名..."
+										value="{{ search_query }}">
+									<div class="input-group-append">
+										<button class="btn btn-primary" type="submit">搜索</button>
+									</div>
+								</div>
+							</form>
 
-    <div class="row">
-
-      <div class="col-lg-12">
-        <div class="card">
-          <header class="card-header">
-            <div class="card-title"> 用户管理                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </div>
-          </header>
-          <div class="card-body">
-            <!-- 主要功能 -->
-          </div>
-
-        </div>
-      </div>
+							<!-- 操作按钮 -->
+							<div class="mb-3">
+								<button type="button" class="btn btn-success" data-bs-toggle="modal"
+									data-bs-target="#addUserModal">
+									新增用户
+								</button>
 
 
-    </div>
-  </div>
-  </div>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/main.min.js')  }}"></script>
-</body>
+								<button class="btn btn-danger" id="delete_users_btn">删除选中</button>
+							</div>
+
+							<!-- 表格 -->
+							<div class="table-responsive">
+								<table class="table table-striped">
+									<thead>
+										<tr>
+											<th><input type="checkbox" id="select_all"></th>
+											<th>ID</th>
+											<th>用户名</th>
+											<th>操作</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for user in users %}
+										<tr>
+											<td><input type="checkbox" class="user_checkbox" value="{{ user['id'] }}">
+											</td>
+											<td>{{ user['id'] }}</td>
+											<td>{{ user['username'] }}</td>
+											<td>
+												<button class="btn btn-danger btn-sm delete-user"
+													data-user-id="{{ user['id'] }}">删除</button>
+											</td>
+										</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+
+							<!-- 分页 -->
+							<!-- 分页 -->
+							<nav aria-label="Page navigation">
+								<ul class="pagination justify-content-center mt-4">
+									{% if page > 1 %}
+									<li class="page-item"><a class="page-link"
+											href="{{ url_for('admin_personne_User_Management', page=page-1, search=search_query) }}">上一页</a>
+									</li>
+									{% endif %}
+									<li class="page-item disabled"><span class="page-link">页 {{ page }} /
+											{{ total_pages }}</span></li>
+									{% if page < total_pages %}
+									<li class="page-item"><a class="page-link"
+											href="{{ url_for('admin_personne_User_Management', page=page + 1, search=search_query) }}">下一页</a>
+									</li>
+									{% endif %}
+
+								</ul>
+							</nav>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+
+		<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel"
+			aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="addUserModalLabel">新增用户</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<form id="addUserForm">
+							<div class="form-group">
+								<label for="username">用户名</label>
+								<input type="text" class="form-control" id="username" name="username" required>
+							</div>
+							<div class="form-group">
+								<label for="password">密码</label>
+								<input type="password" class="form-control" id="password" name="password" required>
+							</div>
+							<br>
+							<div class="form-group text-center">
+								<button type="submit" class="btn btn-primary">新增用户</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+		<script>
+			// 全选框逻辑
+			$('#select_all').change(function() {
+				$('input.user_checkbox').prop('checked', this.checked);
+			});
+
+			// 删除选中用户
+			$('#delete_users_btn').click(function() {
+				var selectedUsers = [];
+				$('input.user_checkbox:checked').each(function() {
+					selectedUsers.push($(this).val());
+				});
+
+				if (selectedUsers.length > 0) {
+					$.ajax({
+						url: '/admin/personnel/delete_user',
+						type: 'POST',
+						contentType: 'application/json',
+						data: JSON.stringify({
+							user_ids: selectedUsers
+						}), // 确保数据以正确的JSON格式传递
+						success: function(response) {
+							alert('删除成功');
+							location.reload();
+						},
+						error: function() {
+							alert('删除失败');
+						}
+					});
+				} else {
+					alert('请选择要删除的用户');
+				}
+			});
+
+			// 删除单个用户
+			$('.delete-user').click(function() {
+				var userId = $(this).data('user-id');
+				if (confirm('确认删除此用户?')) {
+					$.ajax({
+						url: '/admin/personnel/delete_user',
+						type: 'POST',
+						contentType: 'application/json',
+						data: JSON.stringify({
+							user_ids: [userId]
+						}),
+						success: function(response) {
+							alert('删除成功');
+							location.reload();
+						},
+						error: function() {
+							alert('删除失败');
+						}
+					});
+				}
+			});
+
+			// 新增用户表单提交
+			$('#addUserForm').submit(function(e) {
+				e.preventDefault();
+				var username = $('#username').val();
+				var password = $('#password').val();
+
+				$.ajax({
+					url: '/admin/personnel/add_user',
+					type: 'POST',
+					data: {
+						username: username,
+						password: password
+					},
+					success: function(response) {
+						alert('新增用户成功');
+						location.reload();
+					},
+					error: function() {
+						alert('新增用户失败');
+					}
+				});
+			});
+		</script>
+	</body>
 
 </html>

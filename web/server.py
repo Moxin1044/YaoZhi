@@ -1,5 +1,5 @@
 import os
-
+from werkzeug.security import generate_password_hash
 import jwt
 import hashlib
 import sqlite3
@@ -294,136 +294,201 @@ def admin_task_Management():
     token = request.cookies.get('auth_token')
     # 验证Token有效性
     user_data = verify_token(token)
-    if not user_data:
+    if user_data:
+        # 从Cookie中获取Token
+        token = request.cookies.get('auth_token')
+        # 验证Token有效性
+        user_data = verify_token(token)
+        if not user_data:
+            return redirect(url_for('admin_login'))
+
+        # 获取页码，默认为1
+        page = int(request.args.get('page', 1))
+        search = request.args.get('search', '')
+
+        conn = get_db()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # 查询任务总数
+        cursor.execute('SELECT COUNT(*) FROM tasks WHERE task_id LIKE ?', ('%' + search + '%',))
+        total_tasks = cursor.fetchone()[0]
+
+        # 每页显示20条
+        per_page = 20
+        total_pages = (total_tasks + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+
+        # 查询当前页任务
+        cursor.execute('''
+            SELECT * FROM tasks
+            WHERE task_id LIKE ?
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+        ''', ('%' + search + '%', per_page, offset))
+        tasks = cursor.fetchall()
+
+        return render_template('admin/task/Task_Management.html',
+                               tasks=tasks,
+                               current_page=page,
+                               total_pages=total_pages)
+        # 如果Token无效或不存在，重定向到登录页面
         return redirect(url_for('admin_login'))
-
-    # 获取页码，默认为1
-    page = int(request.args.get('page', 1))
-    search = request.args.get('search', '')
-
-    conn = get_db()
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    # 查询任务总数
-    cursor.execute('SELECT COUNT(*) FROM tasks WHERE task_id LIKE ?', ('%' + search + '%',))
-    total_tasks = cursor.fetchone()[0]
-
-    # 每页显示20条
-    per_page = 20
-    total_pages = (total_tasks + per_page - 1) // per_page
-    offset = (page - 1) * per_page
-
-    # 查询当前页任务
-    cursor.execute('''
-        SELECT * FROM tasks
-        WHERE task_id LIKE ?
-        ORDER BY id DESC
-        LIMIT ? OFFSET ?
-    ''', ('%' + search + '%', per_page, offset))
-    tasks = cursor.fetchall()
-
-    return render_template('admin/task/Task_Management.html',
-                           tasks=tasks,
-                           current_page=page,
-                           total_pages=total_pages)
-
 
 @app.route('/admin/task/delete', methods=['POST', 'GET'])
 def admin_task_delete():
-    # 获取选中的任务 ID 列表
-    task_ids = request.form.getlist('ids[]')  # 注意，Flask 会自动将 `ids[]` 解析为列表
-    if not task_ids:
-        return jsonify({'status': 'error', 'message': '没有选中任务'}), 400
-
-    # 删除选中的任务
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        # 删除任务
-        cursor.executemany('DELETE FROM tasks WHERE id = ?', [(task_id,) for task_id in task_ids])
-        conn.commit()
-
-        return jsonify({'status': 'success', 'message': '任务删除成功'})
-    except sqlite3.DatabaseError as e:
-        # 记录数据库错误
-        app.logger.error(f"Database error: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-    except Exception as e:
-        # 记录其他未知错误
-        app.logger.error(f"Unexpected error: {e}")
-        return jsonify({'status': 'error', 'message': '发生未知错误'}), 500
-
-
-@app.route('/admin/task/download/<task_id>', methods=['GET'])
-def admin_task_download(task_id):
-    log_filename = f"{task_id}.log"
-    log_path = os.path.join(app.config['UPLOAD_FOLDER'], log_filename)
-    absolute_path = os.path.abspath(log_path)
-    # Debugging the log path
-    print(f"Log path: {log_path}")
-    print(absolute_path)
-
-    if os.path.exists(absolute_path):
-        return send_file(absolute_path, log_filename, as_attachment=True)
-    else:
-        return "日志文件不存在"
-@app.route('/admin/task/clear_all', methods=['POST'])
-def admin_task_clear_all():
-    conn = sqlite3.connect('tasks.db')
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute('DELETE FROM tasks')
-        conn.commit()
-        return "清空所有任务成功", 200
-    except Exception as e:
-        conn.rollback()
-        return f"清空失败: {e}", 500
-    finally:
-        conn.close()
-
-
-@app.route('/admin/task/details/<task_id>', methods=['GET'])
-def admin_task_details(task_id):
-    conn = sqlite3.connect('tasks.db')
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM tasks WHERE task_id = ?', (task_id,))
-    task = cursor.fetchone()
-
-    if task:
-        return render_template('admin/task/details.html', task=task)
-    else:
-        return "任务不存在", 404
-
-
-
-@app.route('/admin/task/Task_Statistics', methods=['GET', 'POST'])
-def admin_task_Statistics():
     # 从Cookie中获取Token
     token = request.cookies.get('auth_token')
     # 验证Token有效性
     user_data = verify_token(token)
     if user_data:
-        # 如果Token有效，进入正常功能
-        return render_template('admin/task/Task_Statistics.html')
+        # 获取选中的任务 ID 列表
+        task_ids = request.form.getlist('ids[]')  # 注意，Flask 会自动将 `ids[]` 解析为列表
+        if not task_ids:
+            return jsonify({'status': 'error', 'message': '没有选中任务'}), 400
+
+        # 删除选中的任务
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            # 删除任务
+            cursor.executemany('DELETE FROM tasks WHERE id = ?', [(task_id,) for task_id in task_ids])
+            conn.commit()
+
+            return jsonify({'status': 'success', 'message': '任务删除成功'})
+        except sqlite3.DatabaseError as e:
+            # 记录数据库错误
+            app.logger.error(f"Database error: {e}")
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+        except Exception as e:
+            # 记录其他未知错误
+            app.logger.error(f"Unexpected error: {e}")
+            return jsonify({'status': 'error', 'message': '发生未知错误'}), 500
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
 
 
-@app.route('/admin/personnel/User_Management', methods=['GET', 'POST'])
+@app.route('/admin/task/download/<task_id>', methods=['GET'])
+def admin_task_download(task_id):
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        log_filename = f"{task_id}.log"
+        log_path = os.path.join(app.config['UPLOAD_FOLDER'], log_filename)
+        absolute_path = os.path.abspath(log_path)
+        # Debugging the log path
+        print(f"Log path: {log_path}")
+        print(absolute_path)
+
+        if os.path.exists(absolute_path):
+            return send_file(absolute_path, log_filename, as_attachment=True)
+        else:
+            return "日志文件不存在"
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+@app.route('/admin/task/clear_all', methods=['POST'])
+def admin_task_clear_all():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = sqlite3.connect('tasks.db')
+        cursor = conn.cursor()
+        try:
+            cursor.execute('DELETE FROM tasks')
+            conn.commit()
+            return "清空所有任务成功", 200
+        except Exception as e:
+            conn.rollback()
+            return f"清空失败: {e}", 500
+        finally:
+            conn.close()
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+# 新增用户
+@app.route('/admin/personnel/add_user', methods=['POST'])
+def add_user():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if not user_data:
+        # 如果Token无效或不存在，重定向到登录页面
+        return redirect(url_for('admin_login'))
+    username = request.form['username']
+    password = request.form['password']
+    hashed_password = generate_password_hash(password)
+
+    conn = get_db()
+    conn.execute('INSERT INTO users (username, password) VALUES (?, ?);', (username, hashed_password))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success", "message": "新增用户成功"})
+
+
+# 删除用户
+@app.route('/admin/personnel/delete_user', methods=['POST'])
+def delete_user():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if not user_data:
+        # 如果Token无效或不存在，重定向到登录页面
+        return redirect(url_for('admin_login'))
+
+    user_ids = request.json.get('user_ids')  # 获取传递的user_ids
+    if user_ids:
+        conn = get_db()
+        # 通过'?'占位符的方式避免SQL注入
+        query = 'DELETE FROM users WHERE id IN (' + ','.join(['?'] * len(user_ids)) + ')'
+        conn.execute(query, user_ids)  # 使用元组传递参数
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success", "message": "删除成功"})
+
+    return jsonify({"status": "error", "message": "删除失败"}), 400
+
+
+# 用户管理页面（分页和搜索）
+@app.route('/admin/personnel/User_Management', methods=['GET'])
 def admin_personne_User_Management():
     # 从Cookie中获取Token
     token = request.cookies.get('auth_token')
     # 验证Token有效性
     user_data = verify_token(token)
-    if user_data:
-        # 如果Token有效，进入正常功能
-        return render_template('admin/personnel/User_Management.html')
-    # 如果Token无效或不存在，重定向到登录页面
-    return redirect(url_for('admin_login'))
+    if not user_data:
+        # 如果Token无效或不存在，重定向到登录页面
+        return redirect(url_for('admin_login'))
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', '').strip()
 
+    conn = get_db()
+    offset = (page - 1) * 20
+    if search_query:
+        users = conn.execute('''
+            SELECT * FROM users WHERE username LIKE ? ORDER BY id DESC LIMIT 20 OFFSET ?;
+        ''', ('%' + search_query + '%', offset)).fetchall()
+        total_count = \
+        conn.execute('SELECT COUNT(*) FROM users WHERE username LIKE ?;', ('%' + search_query + '%',)).fetchone()[0]
+    else:
+        users = conn.execute('''
+            SELECT * FROM users ORDER BY id DESC LIMIT 20 OFFSET ?;
+        ''', (offset,)).fetchall()
+        total_count = conn.execute('SELECT COUNT(*) FROM users;').fetchone()[0]
+
+    conn.close()
+
+    total_pages = (total_count + 19) // 20  # 向上取整
+
+    return render_template('admin/personnel/User_Management.html', users=users, page=page, total_pages=total_pages,
+                           search_query=search_query)
 
 @app.route('/admin/personnel/Customer_Analysis', methods=['GET', 'POST'])
 def admin_personne_Customer_Analysis():
