@@ -1,4 +1,5 @@
 import os
+
 import jwt
 import hashlib
 import sqlite3
@@ -36,6 +37,14 @@ def verify_token(token):
     except jwt.InvalidTokenError:
         return None  # Token无效
 
+# 异步记录日志
+def log_user_activity(ip, time, ua):
+    conn = get_db()
+    conn.execute('''
+        INSERT INTO logs (ip, time, ua)
+        VALUES (?, ?, ?)
+    ''', (ip, time, ua))
+    conn.commit()
 
 
 # 创建数据库连接
@@ -64,6 +73,16 @@ def init_db():
                         progress INTEGER,
                         timestamp DATETIME,
                         results TEXT)''')
+        db.execute('''CREATE TABLE IF NOT EXISTS logs (
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        ip TEXT,
+                        time DATE,
+                        ua TEXT);''')
+        db.execute('''CREATE TABLE IF NOT EXISTS users (
+                      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                      username TEXT NOT NULL,
+                      password TEXT NOT NULL);''')
+
 
 init_db()
 
@@ -96,6 +115,14 @@ def process_task(task_id, file_path):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
+        # 用户请求分析
+        ip = request.remote_addr  # 获取IP地址
+        ua = request.headers.get('User-Agent')  # 获取浏览器的User-Agent
+        nowtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 获取当前时间
+
+        # 异步写入日志
+        Thread(target=log_user_activity, args=(ip, nowtime, ua)).start()
+
         return render_template('index.html')
 
     if request.method == 'POST':
@@ -253,6 +280,58 @@ def admin_settings_Modify_Password():
         return render_template('admin/settings/Modify_Password.html')
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
+
+
+@app.route('/admin/task/Task_Management', methods=['GET', 'POST'])
+def admin_task_Management():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/task/Task_Management.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+@app.route('/admin/task/Task_Statistics', methods=['GET', 'POST'])
+def admin_task_Statistics():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/task/Task_Statistics.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/admin/personnel/User_Management', methods=['GET', 'POST'])
+def admin_personne_User_Management():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/personnel/User_Management.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/admin/personnel/Customer_Analysis', methods=['GET', 'POST'])
+def admin_personne_Customer_Analysis():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/personnel/Customer_Analysis.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
 
 
 if __name__ == '__main__':
