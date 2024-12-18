@@ -43,7 +43,7 @@
 								<span class="avatar-md rounded-circle bg-white bg-opacity-25 avatar-box">
 									<i class="mdi mdi-plus fs-4"></i>
 								</span>
-								<span class="fs-4 scroll-numbers">920,000</span>
+								<span class="fs-4 scroll-numbers" id="task-today-count">0</span>
 							</div>
 							<div class="text-end">今日新增</div>
 						</div>
@@ -57,7 +57,7 @@
 								<span class="avatar-md rounded-circle bg-white bg-opacity-25 avatar-box">
 									<i class="mdi mdi-numeric-7-box-multiple fs-4"></i>
 								</span>
-								<span class="fs-4 scroll-numbers">34,005,000</span>
+								<span class="fs-4 scroll-numbers" id="task-past7days-count">0</span>
 							</div>
 							<div class="text-end">七日新增</div>
 						</div>
@@ -71,7 +71,7 @@
 								<span class="avatar-md rounded-circle bg-white bg-opacity-25 avatar-box">
 									<i class="mdi mdi-calendar-month fs-4"></i>
 								</span>
-								<span class="fs-4 scroll-numbers">153 条</span>
+								<span class="fs-4 scroll-numbers" id="task-thismonth-count">0</span>
 							</div>
 							<div class="text-end">本月新增</div>
 						</div>
@@ -85,7 +85,7 @@
 								<span class="avatar-md rounded-circle bg-white bg-opacity-25 avatar-box">
 									<i class="mdi mdi-check fs-4"></i>
 								</span>
-								<span class="fs-4 scroll-numbers">34,005,000</span>
+								<span class="fs-4 scroll-numbers" id="task-true-count">0</span>
 							</div>
 							<div class="text-end">成功数量</div>
 						</div>
@@ -99,7 +99,7 @@
 								<span class="avatar-md rounded-circle bg-white bg-opacity-25 avatar-box">
 									<i class="mdi mdi-alert-circle-outline fs-4"></i>
 								</span>
-								<span class="fs-4 scroll-numbers">34,005,000</span>
+								<span class="fs-4 scroll-numbers" id="task-false-count">0</span>
 							</div>
 							<div class="text-end">未完成</div>
 						</div>
@@ -165,7 +165,7 @@
 								$("#users-count").text(count);
 							},
 							error: function() {
-								console.log('请求任务总数失败');
+								console.log('请求用户总数失败');
 							}
 						});
 					}
@@ -183,21 +183,122 @@
 								$("#logs-count").text(count);
 							},
 							error: function() {
-								console.log('请求任务总数失败');
+								console.log('请求访问总数失败');
 							}
 						});
 					}
+
+					// 定义获取总完成任务数量的函数
+					function updateTaskTrueCount() {
+						$.ajax({
+							url: '/api/get_task_true_count',
+							method: 'GET',
+							success: function(response) {
+								console.log("Users count:", response.count);
+								// 格式化数值（例如加上千位分隔符）
+								var count = response.count.toLocaleString();
+								// 更新页面中任务总数的位置，通过 id 来更新
+								$("#task-true-count").text(count);
+							},
+							error: function() {
+								console.log('请求完成任务总数失败');
+							}
+						});
+					}
+
+					// 定义获取今日任务数量的函数
+					function updateTodayTaskCount() {
+						$.ajax({
+							url: '/api/get_today_tasks_count',
+							method: 'GET',
+							success: function(response) {
+								console.log("Users count:", response.count);
+								// 格式化数值（例如加上千位分隔符）
+								var count = response.count.toLocaleString();
+								// 更新页面中任务总数的位置，通过 id 来更新
+								$("#task-today-count").text(count);
+							},
+							error: function() {
+								console.log('请求今日任务数量失败');
+							}
+						});
+					}
+
+					// 定义获取过去7天任务数量的函数
+					function updatePast7DaysTaskCount() {
+						$.ajax({
+							url: '/api/get_past_7_days_tasks_count',
+							method: 'GET',
+							success: function(response) {
+								console.log("Past 7 days task count:", response.count);
+								// 格式化数值（例如加上千位分隔符）
+								var count = response.count.toLocaleString();
+								// 更新页面中任务总数的位置，通过 id 来更新
+								$("#task-past7days-count").text(count);
+							},
+							error: function() {
+								console.log('请求过去7天任务数量失败');
+							}
+						});
+					}
+
+					// 定义获取本月任务数量的函数
+					function updateThisMonthTaskCount() {
+						$.ajax({
+							url: '/api/get_this_month_tasks_count',
+							method: 'GET',
+							success: function(response) {
+								console.log("This month task count:", response.count);
+								// 格式化数值（例如加上千位分隔符）
+								var count = response.count.toLocaleString();
+								// 更新页面中任务总数的位置，通过 id 来更新
+								$("#task-thismonth-count").text(count);
+							},
+							error: function() {
+								console.log('请求本月任务数量失败');
+							}
+						});
+					}
+
+					// 定义获取总未完成任务数量的函数
+					function updateTaskFalseCount() {
+						$.ajax({
+							url: '/api/get_task_false_count',
+							method: 'GET',
+							success: function(response) {
+								console.log("Users count:", response.count);
+								// 格式化数值（例如加上千位分隔符）
+								var count = response.count.toLocaleString();
+								// 更新页面中任务总数的位置，通过 id 来更新
+								$("#task-false-count").text(count);
+							},
+							error: function() {
+								console.log('请求未完成任务总数失败');
+							}
+						});
+					}
+
 
 					$(window).on('load', function() {
 						// 页面加载时立即请求一次数据
 						updateTasksCount();
 						updateUsersCount();
 						updateLogsCount();
+						updateTaskTrueCount();
+						updateTaskFalseCount();
+						updateTodayTaskCount();
+						updatePast7DaysTaskCount();
+						updateThisMonthTaskCount();
 
 						// 每1秒请求一次任务总数并更新页面
 						setInterval(updateTasksCount, 1000);
 						setInterval(updateUsersCount, 1000);
 						setInterval(updateLogsCount, 1000);
+						setInterval(updateTaskTrueCount, 1000);
+						setInterval(updateTaskFalseCount, 1000);
+						setInterval(updateTodayTaskCount, 1000);
+						setInterval(updatePast7DaysTaskCount, 1000);
+						setInterval(updateThisMonthTaskCount, 1000);
 					});
 				</script>
 
@@ -209,7 +310,7 @@
 				<div class="col-md-6">
 					<div class="card">
 						<div class="card-header">
-							<div class="card-title">每周用户</div>
+							<div class="card-title">近七日任务</div>
 						</div>
 						<div class="card-body">
 							<canvas class="js-chartjs-bars"></canvas>
@@ -220,7 +321,7 @@
 				<div class="col-md-6">
 					<div class="card">
 						<div class="card-header">
-							<div class="card-title">交易历史记录</div>
+							<div class="card-title">访问记录</div>
 						</div>
 						<div class="card-body">
 							<canvas class="js-chartjs-lines"></canvas>
@@ -244,27 +345,65 @@
 
 		<script type="text/javascript">
 			$(document).ready(function(e) {
+				// 获取canvas元素的上下文
 				var $dashChartBarsCnt = jQuery('.js-chartjs-bars')[0].getContext('2d'),
 					$dashChartLinesCnt = jQuery('.js-chartjs-lines')[0].getContext('2d');
-
+				var gradient = $dashChartBarsCnt.createLinearGradient(0, 0, 0, 400); // 起点和终点坐标
+				gradient.addColorStop(0, 'rgba(0, 123, 255, 0.3)'); // 起始颜色（顶部）
+				gradient.addColorStop(1, 'rgba(0, 123, 255, 1)'); // 结束颜色（底部）
+				// 初始化 bar chart 的数据
 				var $dashChartBarsData = {
 					labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
 					datasets: [{
-						label: '注册用户',
+						label: '任务数量',
 						borderWidth: 1,
 						borderColor: 'rgba(0, 0, 0, 0)',
-						backgroundColor: 'rgba(0, 123, 255,0.5)',
+						backgroundColor: gradient, // 使用渐变色
 						hoverBackgroundColor: "rgba(0, 123, 255, 0.7)",
 						hoverBorderColor: "rgba(0, 0, 0, 0)",
 						data: [2500, 1500, 1200, 3200, 4800, 3500, 1500]
 					}]
 				};
+
+				// 定义获取最近7天每天任务数量的函数
+				function updateLast7DaysTaskCount() {
+					$.ajax({
+						url: '/api/get_last_7_days_task_count',
+						method: 'GET',
+						success: function(response) {
+							console.log("Last 7 days task counts:", response.data);
+
+							// 确保数据按日期顺序排序
+							const sortedData = sortDataByDate(response.labels, response.data);
+
+							// 更新dashChartBarsData的labels和data
+							$dashChartBarsData.labels = sortedData.labels; // 更新标签
+							$dashChartBarsData.datasets[0].data = sortedData.data; // 更新数据
+
+							// 更新图表
+							chart.update(); // 更新图表显示
+						},
+						error: function() {
+							console.log('请求过去7天每天任务数量失败');
+						}
+					});
+				}
+				// 请求过去7天的任务数量并更新图表数据
+				updateLast7DaysTaskCount();
+
+				// 初始化 bar chart
+				var chart = new Chart($dashChartBarsCnt, {
+					type: 'bar',
+					data: $dashChartBarsData
+				});
+
+				// 初始化 line chart 的数据
 				var $dashChartLinesData = {
 					labels: ['2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013',
 						'2014'
 					],
 					datasets: [{
-						label: '交易资金',
+						label: '访问数量',
 						data: [20, 25, 40, 30, 45, 40, 55, 40, 48, 40, 42, 50],
 						borderColor: '#007bff',
 						backgroundColor: 'rgba(0, 123, 255, 0.175)',
@@ -274,16 +413,65 @@
 					}]
 				};
 
-				new Chart($dashChartBarsCnt, {
-					type: 'bar',
-					data: $dashChartBarsData
-				});
+				// 定义获取近30天访问次数的函数
+				function updateLast30DaysLogsCount() {
+					$.ajax({
+						url: '/api/get_last_30_days_logs_count',
+						method: 'GET',
+						success: function(response) {
+							console.log("Last 30 days logs count:", response.data);
+							// 确保数据按日期顺序排序
+							const sortedData = sortDataByDate(response.labels, response.data);
+							// 更新图表数据
+							$dashChartLinesData.labels = sortedData.labels; // 更新日期标签（去掉年份）
+							$dashChartLinesData.datasets[0].data = sortedData.data; // 更新每天的访问次数
 
+
+							// 更新图表
+							myLineChart.update(); // 更新图表显示
+
+						},
+						error: function() {
+							console.log('请求近30天日志数据失败');
+						}
+					});
+				}
+				updateLast30DaysLogsCount();
+				// 初始化 line chart
 				var myLineChart = new Chart($dashChartLinesCnt, {
 					type: 'line',
 					data: $dashChartLinesData,
 				});
 			});
+
+			// 排序函数，确保数据按日期顺序排列
+			function sortDataByDate(labels, data) {
+				// 将标签和数据结合为一个数组
+				var combined = labels.map(function(label, index) {
+					return {
+						label: label,
+						data: data[index]
+					};
+				});
+
+				// 按日期排序（假设标签是日期格式）
+				combined.sort(function(a, b) {
+					return new Date(a.label) - new Date(b.label); // 比较日期
+				});
+
+				// 提取排序后的标签和数据
+				var sortedLabels = combined.map(function(item) {
+					return item.label;
+				});
+				var sortedData = combined.map(function(item) {
+					return item.data;
+				});
+
+				return {
+					labels: sortedLabels,
+					data: sortedData
+				};
+			}
 		</script>
 	</body>
 </html>

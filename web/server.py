@@ -98,17 +98,21 @@ def process_task(task_id, file_path):
     ip_calc = core.calc_ip(data)
     ip_info = []
 
+    with get_db() as db:
+        db.execute('''UPDATE tasks SET status = ?, progress = ? WHERE task_id = ?''',
+                   ('分析中', 50, task_id))
     # --------------------------------
     for i in ip_calc:
         message = core.get_ip_message(i['IP'])
         ip_info.append({"IP": i['IP'], "IP_Counts": i['IP_Counts'], "IP_location": message['IP_location']})
     # --------------------------------
-
+    with get_db() as db:
+        db.execute('''UPDATE tasks SET status = ?, progress = ? WHERE task_id = ?''',
+                   ('分析中', 80, task_id))
     # 将data和ip_info转换为字符串存储在数据库
     with get_db() as db:
         db.execute('''UPDATE tasks SET status = ?, progress = ?, results = ? WHERE task_id = ?''',
                    ('完成', 100, str({'data': data, 'ip_info': ip_info}), task_id))
-
     # 返回分析结果
     return data, ip_info
 
@@ -358,6 +362,34 @@ def api_get_all_logs():
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
 
+@app.route('/api/get_all_tasks', methods=['GET'])
+def api_get_all_tasks():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute('SELECT id, task_id, status, progress, timestamp,results  FROM tasks')
+        tasks = cursor.fetchall()
+
+        # 将日志转换为字典列表
+        task_list = []
+        for task in tasks:
+            task_list.append({
+                "id": task["id"],
+                "task_id": task["task_id"],
+                "status": task["status"],
+                "progress": task["progress"],
+                "timestamp": task["timestamp"],
+                "results": task["results"]
+            })
+
+        # 返回日志列表作为JSON响应
+        return jsonify(task_list)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
 
 
 @app.route('/api/get_logs_count', methods=['GET'])
@@ -416,10 +448,180 @@ def api_get_tasks_true_count():
     user_data = verify_token(token)
     if user_data:
         conn = get_db()
-        cursor = conn.execute('SELECT id FROM tasks WHERE status ==""')
+        cursor = conn.execute("SELECT id FROM tasks WHERE status = '完成'")
         ret_data = {"count": cursor.fetchall().__len__()}
         # 返回日志列表作为JSON响应
         return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_task_false_count', methods=['GET'])
+def api_get_tasks_false_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute("SELECT id FROM tasks WHERE status = '分析中'")
+        ret_data = {"count": cursor.fetchall().__len__()}
+        # 返回日志列表作为JSON响应
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_today_tasks_count', methods=['GET'])
+def api_get_today_tasks_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+
+        # 获取当前日期（年月日）
+        today_date = datetime.today().strftime('%Y-%m-%d')
+
+        # 查询数据库，获取今天的任务（只取日期部分进行比较）
+        cursor = conn.execute('''
+            SELECT id, task_id, status, progress, timestamp, results
+            FROM tasks
+            WHERE DATE(timestamp) = ?
+        ''', (today_date,))
+
+        ret_data = {"count": cursor.fetchall().__len__()}
+
+        # 返回任务列表
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+@app.route('/api/get_past_7_days_tasks_count', methods=['GET'])
+def api_get_past_7_days_tasks_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+
+        # 查询过去7天的数据
+        cursor = conn.execute('''
+            SELECT id, task_id, status, progress, timestamp, results
+            FROM tasks
+            WHERE timestamp >= DATE('now', '-7 days')
+        ''')
+
+        ret_data = {"count": len(cursor.fetchall())}
+
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_this_month_tasks_count', methods=['GET'])
+def api_get_this_month_tasks_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+
+        # 查询本月的数据
+        cursor = conn.execute('''
+            SELECT id, task_id, status, progress, timestamp, results
+            FROM tasks
+            WHERE timestamp >= strftime('%Y-%m-01', 'now')
+        ''')
+
+        ret_data = {"count": len(cursor.fetchall())}
+
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_last_7_days_task_count', methods=['GET'])
+def api_get_last_7_days_task_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+
+        # 获取当前日期
+        today = datetime.today()
+
+        # 获取过去 7 天的日期范围
+        last_7_days = [today - timedelta(days=i) for i in range(7)]
+
+        # 格式化日期为 "MM-DD"
+        last_7_days_formatted = [date.strftime('%m-%d') for date in last_7_days]
+
+        # 统计每天任务数量
+        task_counts = []
+        for day in last_7_days:
+            # 获取每一天的任务数量
+            cursor = conn.execute('''
+                SELECT COUNT(*) 
+                FROM tasks
+                WHERE DATE(timestamp) = ?
+            ''', (day.strftime('%Y-%m-%d'),))  # 使用 YYYY-MM-DD 格式
+            count = cursor.fetchone()[0]
+            task_counts.append(count)
+
+        # 返回结果：labels 是日期，data 是每个日期的任务数量
+        result = {
+            "labels": last_7_days_formatted,
+            "data": task_counts
+        }
+
+        return jsonify(result)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+@app.route('/api/get_last_30_days_logs_count', methods=['GET'])
+def api_get_last_30_days_logs_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+
+        # 获取当前日期
+        today = datetime.today()
+
+        # 获取过去 30 天的日期范围
+        last_30_days = [today - timedelta(days=i) for i in range(30)]
+
+        # 格式化日期为 "MM-DD"
+        last_30_days_formatted = [date.strftime('%m-%d') for date in last_30_days]
+
+        # 统计每天的日志访问次数
+        log_counts = []
+        for day in last_30_days:
+            # 获取每一天的访问次数
+            cursor = conn.execute('''
+                SELECT COUNT(*) 
+                FROM logs
+                WHERE DATE(time) = ?
+            ''', (day.strftime('%Y-%m-%d'),))  # 使用 YYYY-MM-DD 格式
+            count = cursor.fetchone()[0]
+            log_counts.append(count)
+
+        # 返回结果：labels 是日期（格式化为 MM-DD），data 是每个日期的访问次数
+        result = {
+            "labels": last_30_days_formatted,
+            "data": log_counts
+        }
+
+        return jsonify(result)
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
 
