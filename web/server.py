@@ -497,10 +497,63 @@ def admin_personne_Customer_Analysis():
     # 验证Token有效性
     user_data = verify_token(token)
     if user_data:
-        # 如果Token有效，进入正常功能
-        return render_template('admin/personnel/Customer_Analysis.html')
+        # 获取搜索条件
+        search_query = request.args.get('search', '')
+        page = int(request.args.get('page', 1))  # 获取当前页码，默认为1
+
+        # 每页显示30条日志
+        per_page = 30
+        offset = (page - 1) * per_page
+
+        # 获取数据库连接
+        conn = get_db()
+
+        # 根据搜索条件查询
+        if search_query:
+            cursor = conn.execute('''
+                    SELECT * FROM logs
+                    WHERE ip LIKE ? OR ua LIKE ? OR time LIKE ?
+                    ORDER BY time DESC
+                    LIMIT ? OFFSET ?
+                ''', ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', per_page, offset))
+        else:
+            cursor = conn.execute('''
+                    SELECT * FROM logs
+                    ORDER BY time DESC
+                    LIMIT ? OFFSET ?
+                ''', (per_page, offset))
+
+        logs = cursor.fetchall()
+
+        # 获取总页数
+        cursor = conn.execute('SELECT COUNT(*) FROM logs')
+        total_logs = cursor.fetchone()[0]
+        total_pages = (total_logs + per_page - 1) // per_page  # 计算总页数
+
+        return render_template('admin/personnel/Customer_Analysis.html', logs=logs, search_query=search_query, page=page, total_pages=total_pages)
+
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
+
+@app.route('/admin/clear_logs', methods=['POST'])
+def clear_logs():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if not user_data:
+        # 如果Token无效或不存在，重定向到登录页面
+        return redirect(url_for('admin_login'))
+    # 获取数据库连接
+    conn = get_db()
+
+    try:
+        # 清空日志表
+        conn.execute('DELETE FROM logs')
+        conn.commit()
+        return jsonify({"status": "success", "message": "日志已清空"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"清空失败: {str(e)}"}), 400
 
 @app.route('/api/get_all_logs', methods=['GET'])
 def api_get_all_logs():
