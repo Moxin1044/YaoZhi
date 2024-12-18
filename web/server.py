@@ -193,6 +193,16 @@ def admin_login():
     # 如果是GET请求，直接返回登录页面
     return render_template('admin/login.html')
 
+# 退出登录
+
+@app.route('/admin/logout', methods=['GET'])
+def admin_logout():
+    # 清除用户的auth_token Cookie
+    response = make_response(redirect(url_for('admin_login')))
+    response.delete_cookie('auth_token')  # 删除Cookie，清除登录状态
+    return response
+
+
 
 @app.route('/admin', methods=['GET'])
 def admin():
