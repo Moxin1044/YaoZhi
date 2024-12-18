@@ -1,9 +1,11 @@
 import os
+import jwt
 import hashlib
 import sqlite3
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, current_app, make_response, redirect, url_for
+from werkzeug.security import check_password_hash  # 用于密码验证
 import core
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Thread
 import time
 
@@ -13,15 +15,44 @@ app = Flask(__name__)
 UPLOAD_FOLDER = './uploads/logs/'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SECRET_KEY'] = '0d23d17f137e04b92831d5596bb7cd1d'  # 确保使用一个复杂的密钥
 
-# 设置管理员Token（您可以修改为其他方式获取Token）
-ADMIN_TOKEN = 'ba039bdf1fc30837a5641feceaf51bc2'
+# 用于生成Token
+def generate_token(username, password):
+    payload = {
+        'username': username,
+        'password': password,
+        'exp': datetime.utcnow() + timedelta(days=5)  # 设置Token过期时间为5天
+    }
+    return jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+# 用于验证Token
+def verify_token(token):
+    try:
+        payload = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+        return payload  # 返回payload信息
+    except jwt.ExpiredSignatureError:
+        return None  # Token过期
+    except jwt.InvalidTokenError:
+        return None  # Token无效
+
+
 
 # 创建数据库连接
 def get_db():
     conn = sqlite3.connect('tasks.db')
     conn.row_factory = sqlite3.Row  # Allows for column access by name
     return conn
+
+# 获取用户数据
+def get_user_from_db(username):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, password FROM users WHERE username = ?", (username,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
 
 # 初始化数据库
 def init_db():
@@ -135,9 +166,58 @@ def get_task_results(task_id):
 
 
 # 通过Token验证用户并访问admin页面
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，跳转管理员首页
+        return redirect(url_for('admin'))
+    # 验证结束
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        # 从数据库查询用户信息
+        user = get_user_from_db(username)
+        if user and check_password_hash(user[1], password):  # user[1]是数据库中的password
+            # 生成Token
+            token = generate_token(username, password)
+            # 创建响应并设置Cookie（或其他方式，如LocalStorage）
+            response = make_response(redirect(url_for('admin')))
+            response.set_cookie('auth_token', token)
+            return response
+        # 如果用户名或密码错误，返回错误信息
+        return render_template('admin/login.html', error="用户名或密码错误")
+    # 如果是GET请求，直接返回登录页面
+    return render_template('admin/login.html')
+
+
 @app.route('/admin', methods=['GET'])
 def admin():
-        return render_template('admin.html')  # 返回一个管理员页面模板
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/index.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+@app.route('/admin/home', methods=['GET'])
+def admin_home():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        # 如果Token有效，进入正常功能
+        return render_template('admin/home.html')
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

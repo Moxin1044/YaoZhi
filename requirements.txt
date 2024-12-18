@@ -1,4 +1,6 @@
-pandas~=2.2.1
-prettytable~=3.10.0
+pandas~=2.2.3
+prettytable~=3.10.2
+PyJWT~=2.10.1
 Flask~=2.2.5
-tqdm~=4.66.1
+requests~=2.32.3
+tqdm~=4.66.6

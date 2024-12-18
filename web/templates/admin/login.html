@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+<title>登录 - 遥知 - Web日志分析</title>
+<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-touch-fullscreen" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/materialdesignicons.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/animate.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css') }}">
+<style>
+</style>
+</head>
+
+<body class="bg-white overflow-x-hidden">
+<div class="row bg-white vh-100">
+  <div class="col-md-6 col-lg-7 col-xl-8 d-none d-md-block" style="background-image: url({{url_for('static', filename='images/login-bg-1.jpg') }}); background-size: cover;">
+
+    <div class="d-flex vh-100">
+      <div class="p-5 align-self-end">
+        <a href="{{ url_for("index") }}"> <img alt="遥知后台管理系统" src="{{url_for('static', filename='images/logo-sidebar.png') }}"> </a>
+        <p class="text-white">遥知 - Web日志分析 | 即现（信阳）网络科技有限公司</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-md-6 col-lg-5 col-xl-4 align-self-center">
+    <div class="p-5">
+      <div class="text-center">
+        <a href="{{ url_for("index") }}"><img alt="遥知后台管理系统" src="{{url_for('static', filename='images/logo-sidebar.png') }}"> </a>
+      </div>
+      <p class="text-center text-muted"><small>请使用您的账号登录系统</small></p>
+
+      <form action="{{ url_for("admin_login") }}" method="post" class="signin-form needs-validation" novalidate>
+        <div class="mb-3">
+          <label for="username">用户名</label>
+          <input type="text" class="form-control" id="username" name="username" placeholder="请输入您的用户名" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password">密码</label>
+          <input type="password" class="form-control" id="password" name="password" placeholder="请输入您的密码" required>
+        </div>
+
+
+        <div class="mb-3 d-grid">
+          <button class="btn btn-primary" type="submit">立即登录</button>
+        </div>
+         {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+      </form>
+      <p class="text-center text-muted mt-3">Copyright ©2024 即现（信阳）网络科技有限公司 版权所有</p>
+      <p class="text-center text-muted mt-3">计算机软件著作权登记号：2024SR0919062
+      <p class="text-center text-muted mt-3" href="https://register.ccopyright.com.cn/query.html" target="_blank">点击查询</a> |
+      <a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2024070026号-1</a></p>
+    </div>
+  </div>
+</div>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/lyear-loading.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-notify.min.js') }}"></script>
+</body>
+</html>
