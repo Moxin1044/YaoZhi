@@ -1,153 +1,314 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>遥知 - Web日志分析</title>
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- 添加FontAwesome图标库 -->
     <style>
-      h1 {
-          text-align: center;
-      }
-      .button-container {
-          float: right;
-      }
-      .auto-width-table {
-          width: 100%;
-          table-layout: auto;
-      }
-      .no-wrap {
-          white-space: nowrap;
-          max-width: 100px; /* 或你需要的任何宽度 */
-          overflow: hidden;
-          text-overflow: ellipsis;
-          position: relative; /* 为了定位工具提示 */
-          cursor: pointer; /* 当鼠标悬停时显示手形图标 */
-      }
-      .no-wrap[data-tooltip]:hover:after {
-          content: attr(data-tooltip);
-          position: absolute;
-          left: 0;
-          top: 100%;
-          padding: 4px 8px;
-          color: #333;
-          background-color: #f8f8f8;
-          border: 1px solid #ddd;
-          border-radius: 3px;
-          font-size: 14px;
-          white-space: normal;
-          z-index: 1;
-      }
-      .center-table th {
-          text-align: center;
-      }
-      .center-table td {
-          text-align: center;
-      }
-      .center-div {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-
+        h1 {
+            text-align: center;
+        }
+        .center-table th, .center-table td {
+            text-align: center;
+            white-space: nowrap; /* 默认不换行 */
+        }
+        /* 仅让“请求页面”列的表头和表内容支持换行 */
+        .center-table th.page-header, .center-table td.page-cell {
+            white-space: normal; /* 允许换行 */
+            word-wrap: break-word;
+            word-break: break-word;
+            text-align: left; /* 请求页面的内容左对齐 */
+        }
+        .center-table th.page-header {
+            text-align: center; /* 请求页面表头居中 */
+        }
+        .center-div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #progress-message {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .progress-bar-container {
+            margin-top: 20px;
+        }
+        .no-wrap {
+            white-space: nowrap; /* 保持不换行 */
+        }
+        .file-upload-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-upload-container input[type="file"] {
+            flex-grow: 1;
+        }
+        .file-upload-container .btn {
+            margin-left: 10px;
+        }
+        /* 底部版权和备案信息 */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 10px 0;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
     </style>
     <script>
-        function copyText(element) {
-            /* 获取要复制的文本 */
-            var text = element.getAttribute('title');
-            navigator.clipboard
-            .writeText(text)
-            .then(() => {
-              window.alert("复制成功");
+        let taskId = null;
+        let progressInterval = null;
+
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const formData = new FormData(event.target);
+            const fileInput = document.querySelector('input[type="file"]');
+            const file = fileInput.files[0];
+
+            // 如果文件大于10MB，给出提示
+            if (file.size > 10 * 1024 * 1024) {  // 大于10MB
+                document.getElementById("progress-message").innerText = "由于文件过大，分析时间可能较长";
+            }
+
+            // 清空之前的进度条
+            document.getElementById("progress-bar").style.width = "0%";
+            document.getElementById("progress-message").innerText = "文件上传中..." ;
+
+            // 发送上传请求
+            fetch('/', {
+                method: 'POST',
+                body: formData
             })
-            .catch((error) => {
-              window.alert("复制失败", error);
+            .then(response => response.json())
+            .then(data => {
+                if (data.task_id) {
+                    taskId = data.task_id;
+                    startProgressCheck();
+                }
+            })
+            .catch(error => console.error('上传文件时出错:', error));
+
+            event.preventDefault();
+        }
+
+        // 启动进度查询
+        function startProgressCheck() {
+            progressInterval = setInterval(() => {
+                fetch(`/task_status/${taskId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === '完成') {
+                            clearInterval(progressInterval);
+                            document.getElementById("progress-message").innerText = "分析完成";
+                            document.getElementById("progress-bar").style.width = "100%";
+                            // 获取任务结果并显示
+                            displayAnalysisResults();
+                        } else {
+                            document.getElementById("progress-message").innerText = `当前进度：${data.progress}%`;
+                            document.getElementById("progress-bar").style.width = `${data.progress}%`;
+                        }
+                    })
+                    .catch(error => console.error('查询任务进度时出错:', error));
+            }, 1000);
+        }
+
+        // 显示分析结果
+        function displayAnalysisResults() {
+            fetch(`/task_results/${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.results) {
+                        renderResultsTable(data.results);
+                    } else {
+                        alert("无法获取分析结果");
+                    }
+                })
+                .catch(error => console.error('获取任务结果时出错:', error));
+        }
+
+        // 渲染分析结果到表格
+        function renderResultsTable(results) {
+            let tableBody = document.getElementById("result-table-body");
+            tableBody.innerHTML = ''; // 清空表格内容
+
+            results.data.forEach(result => {
+                let row = document.createElement("tr");
+
+                // 创建每一列
+                let ipCell = document.createElement("td");
+                let timeCell = document.createElement("td");
+                let typeCell = document.createElement("td");
+                let pageCell = document.createElement("td");
+                let versionCell = document.createElement("td");
+                let codeCell = document.createElement("td");
+                let sizeCell = document.createElement("td");
+
+                ipCell.textContent = result.IP;
+                timeCell.textContent = result.Time;
+                typeCell.textContent = result.Access_Type;
+                pageCell.textContent = result.Accessed_Page;
+                versionCell.textContent = result.HTTP_Version;
+                codeCell.textContent = result.Response_Code;
+                sizeCell.textContent = result.Response_Size;
+
+                // 为“请求页面”列和表头添加class，使其能够换行
+                pageCell.classList.add('page-cell');
+                let pageHeader = document.querySelectorAll('.page-header');
+                pageHeader.forEach(header => header.classList.add('page-header'));
+
+                row.appendChild(ipCell);
+                row.appendChild(timeCell);
+                row.appendChild(typeCell);
+                row.appendChild(pageCell);
+                row.appendChild(versionCell);
+                row.appendChild(codeCell);
+                row.appendChild(sizeCell);
+
+                tableBody.appendChild(row);
+            });
+
+            // 渲染IP详情分析
+            renderIPDetails(results.ip_info);
+        }
+
+        // 渲染IP详情分析
+        function renderIPDetails(ipInfo) {
+            let ipInfoBody = document.getElementById("ip-info-body");
+            ipInfoBody.innerHTML = ''; // 清空内容
+
+            ipInfo.forEach(info => {
+                let row = document.createElement("tr");
+
+                // 创建每一列
+                let ipCell = document.createElement("td");
+                let countCell = document.createElement("td");
+                let locationCell = document.createElement("td");
+
+                ipCell.innerHTML = `<a href="https://x.threatbook.com/v5/ip/${info.IP}" target="_blank">${info.IP}</a>`;
+                countCell.textContent = info.IP_Counts;
+                locationCell.textContent = info.IP_location;
+
+                row.appendChild(ipCell);
+                row.appendChild(countCell);
+                row.appendChild(locationCell);
+
+                ipInfoBody.appendChild(row);
             });
         }
     </script>
 </head>
 <body>
 
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <!-- Logo 和品牌 -->
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <!-- Logo -->
+                <img src="{{ url_for('static', filename='images/yaozhi.png') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
+                <!-- 标题 -->
+                遥知 - Web日志分析
+            </a>
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            后台管理
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="#">后台管理</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Body -->
     <div class="container">
-    <br>
+        <br>
+
         <h1>遥知 - Web日志分析</h1>
         <hr>
-        <form action="/" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label class="form-label">选择分析文件(仅支持*.log文件)：</label>
-                <input type="file" name="file" class="form-control" accept=".log">
-                <div class="button-container">
-                    <input type="submit" value="上传分析" class="btn btn-primary mt-2">
-                </div>
+        <form id="upload-form" onsubmit="handleFileUpload(event)" enctype="multipart/form-data">
+            <label class="form-label">选择分析文件(仅支持*.log文件)：</label>
+            <div class="mb-3 file-upload-container">
+                <input type="file" name="file" class="form-control" accept=".log" required>
+                <input type="submit" value="上传分析" class="btn btn-primary">
             </div>
-
-
         </form>
+
+        <!-- 文件上传进度条和提示 -->
+        <div id="progress-message"></div>
+        <div class="progress progress-bar-container">
+            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
         <br>
         <h2>日志文件分析</h2>
         <div class="container-fluid center-div">
             <table class="table center-table">
-            <thead>
-                <tr>
-                     <th class="no-wrap">IP</th>
-                    <th class="no-wrap">时间</th>
-                    <th class="no-wrap">请求类型</th>
-                    <th class="no-wrap">请求页面</th>
-                    <th class="no-wrap">HTTP版本</th>
-                    <th class="no-wrap">状态码</th>
-                    <th class="no-wrap">返回包大小</th>
-<!--                    <th class="no-wrap">UA</th>-->
-                </tr>
-            </thead>
-            <tbody id="result-table-body">
-                 {% if datas %}
-                    {% for data in datas %}
-                         <tr>
-                            <td class="no-wrap"><a href="https://x.threatbook.com/v5/ip/{{ data.IP }}" target="_blank">{{ data.IP }}</a></td>
-                            <td class="no-wrap">{{ data.Time }}</td>
-                            <td class="no-wrap">{{ data.Access_Type }}</td>
-                            <td class="no-wrap" onclick="copyText(this)" title="{{ data.Accessed_Page }}">{{ data.Accessed_Page | truncate(15) }}</td>
-                            <td class="no-wrap">{{ data.HTTP_Version }}</td>
-                            <td class="no-wrap">{{ data.Response_Code }}</td>
-                            <td class="no-wrap">{{ data.Response_Size }}</td>
-<!--                            <td class="no-wrap">{{ data.User_Agent }}</td>-->
-                         </tr>
-                    {% endfor %}
-                {% endif %}
-            </tbody>
-        </table>
+                <thead>
+                    <tr>
+                        <th>IP</th>
+                        <th>时间</th>
+                        <th>请求类型</th>
+                        <th class="page-header">请求页面</th>
+                        <th>HTTP版本</th>
+                        <th>状态码</th>
+                        <th>返回包大小</th>
+                    </tr>
+                </thead>
+                <tbody id="result-table-body">
+                    <!-- 动态填充分析结果 -->
+                </tbody>
+            </table>
         </div>
 
-        <br>
         <h2>IP详情分析</h2>
         <div class="container-fluid center-div">
             <table class="table center-table">
-            <thead>
-                <tr>
-                    <th class="no-wrap">IP</th>
-                    <th class="no-wrap">请求频次</th>
-                    <th class="no-wrap">所属国家</th>
-                </tr>
-            </thead>
-            <tbody id="result-table-body">
-                 {% if merged_list %}
-                    {% for list in merged_list %}
-                         <tr>
-                            <td class="no-wrap"><a href="https://x.threatbook.com/v5/ip/{{ list.IP }}" target="_blank">{{ list.IP }}</a></td>
-                            <td class="no-wrap">{{ list.IP_Counts }}</td>
-                            <td class="no-wrap">{{ list.IP_location }}</td>
-                         </tr>
-                    {% endfor %}
-                {% endif %}
-            </tbody>
-        </table>
+                <thead>
+                    <tr>
+                        <th class="no-wrap">IP</th>
+                        <th class="no-wrap">请求频次</th>
+                        <th class="no-wrap">所属国家</th>
+                    </tr>
+                </thead>
+                <tbody id="ip-info-body">
+                    <!-- 动态填充IP详情分析 -->
+                </tbody>
+            </table>
         </div>
 
+        <div id="ip-info" class="container"></div>
     </div>
 
-    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
-    <script>
-        // 在此处编写 JavaScript 代码来处理查询和填充表格的逻辑
-        // 可以使用 AJAX 或其他方式从服务器获取查询结果，并将结果填充到表格中
-    </script>
+    <!-- Footer -->
+    <!-- 版权和备案信息 -->
+    <div class="footer">
+        <p>Copyright ©2024 即现（信阳）网络科技有限公司 版权所有</p>
+        <p>计算机软件著作权登记号：2024SR0919062
+        <a href="https://register.ccopyright.com.cn/query.html" target="_blank">点击查询</a> |
+        <a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2024070026号-1</a></p>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

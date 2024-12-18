@@ -1,7 +1,7 @@
 import os
 import hashlib
 import sqlite3
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 import core
 from datetime import datetime
 from threading import Thread
@@ -13,6 +13,9 @@ app = Flask(__name__)
 UPLOAD_FOLDER = './uploads/logs/'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# 设置管理员Token（您可以修改为其他方式获取Token）
+ADMIN_TOKEN = 'ba039bdf1fc30837a5641feceaf51bc2'
 
 # 创建数据库连接
 def get_db():
@@ -128,6 +131,13 @@ def get_task_results(task_id):
         return jsonify({'success': True, 'results': results})
     else:
         return jsonify({'success': False, 'message': '结果未完成或未找到'}), 404
+
+
+
+# 通过Token验证用户并访问admin页面
+@app.route('/admin', methods=['GET'])
+def admin():
+        return render_template('admin.html')  # 返回一个管理员页面模板
 
 if __name__ == '__main__':
     app.run(debug=True)
