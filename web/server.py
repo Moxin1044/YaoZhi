@@ -332,6 +332,49 @@ def admin_personne_Customer_Analysis():
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
 
+@app.route('/api/get_all_logs', methods=['GET'])
+def api_get_all_logs():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute('SELECT id, ip, time, ua FROM logs')
+        logs = cursor.fetchall()
+
+        # 将日志转换为字典列表
+        log_list = []
+        for log in logs:
+            log_list.append({
+                "id": log["id"],
+                "ip": log["ip"],
+                "time": log["time"],
+                "ua": log["ua"]
+            })
+
+        # 返回日志列表作为JSON响应
+        return jsonify(log_list)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
+
+
+@app.route('/api/get_logs_count', methods=['GET'])
+def api_get_logs_count():
+    # 从Cookie中获取Token
+    token = request.cookies.get('auth_token')
+    # 验证Token有效性
+    user_data = verify_token(token)
+    if user_data:
+        conn = get_db()
+        cursor = conn.execute('SELECT id FROM logs')
+        ret_data = {"count": cursor.fetchall().__len__()}
+        # 返回日志列表作为JSON响应
+        return jsonify(ret_data)
+    # 如果Token无效或不存在，重定向到登录页面
+    return redirect(url_for('admin_login'))
+
 
 
 if __name__ == '__main__':
