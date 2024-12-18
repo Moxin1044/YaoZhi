@@ -55,7 +55,7 @@ def batch_analysis(filename):
 
 
 def batch_analysis_web(file_read):
-    lines = core.read.read_file_web(file_read)
+    lines = core.read.read_file(file_read)
     print(f"正在解析日志，该文件共有：{len(lines)}条日志。")
     data = []
     for l in tqdm(lines):
@@ -121,4 +121,3 @@ def get_ip_message(ip):
         dst = info[0]
         ip_info = {"IP": ip, "IP_location": dst['location']}
     return ip_info
-
