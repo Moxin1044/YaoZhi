@@ -386,8 +386,9 @@ def admin():
     user_data = verify_token(token)
     # 如果Token有效，获取用户名
     username = user_data.get('username')
+    platform = get_platform_info_from_db()
     # 传递用户名到模板
-    return render_template('admin/index.html', username=username)
+    return render_template('admin/index.html', username=username, platform=platform)
 
 @app.route('/admin/home', methods=['GET'])
 @login_required

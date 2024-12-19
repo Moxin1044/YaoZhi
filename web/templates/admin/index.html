@@ -5,8 +5,10 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-		<title>首页 - 遥知 - Web日志分析</title>
+		<title>{{ platform.platform_name }}</title>
 		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+        <meta name="description" content="{{ platform.platform_description }}">
+        <meta name="keyword" content="{{ platform.platform_keywords }}">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-touch-fullscreen" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -28,8 +30,8 @@
 					<!-- logo -->
 					<div id="logo" class="sidebar-header">
 						<a href="{{ url_for("index") }}"><img
-								src="{{ url_for('static', filename='images/logo-sidebar.png') }}" title="LightYear"
-								alt="LightYear" /></a>
+								src="{{ url_for('static', filename='images/logo-sidebar.png') }}" title="{{ platform.platform_name }}"
+								alt="{{ platform.platform_name }}" /></a>
 					</div>
 					<div class="lyear-layout-sidebar-info lyear-scroll">
 

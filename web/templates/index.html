@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>遥知 - Web日志分析</title>
+    <title>{{ platform.platform_name }}</title>
+    <meta name="description" content="{{ platform.platform_description }}">
+    <meta name="keyword" content="{{ platform.platform_keywords }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <style>
         h1 {
@@ -229,7 +231,7 @@
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="{{ url_for('static', filename='images/yaozhi.png') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
-                遥知 - Web日志分析
+                {{ platform.platform_name }}
             </a>
             <div class="collapse navbar-collapse justify-content-end">
                 <ul class="navbar-nav">
@@ -250,7 +252,7 @@
     <div class="container">
         <br>
 
-        <h1><img src="{{ url_for('static', filename='images/home-logo.png') }}" alt="遥知 - Web日志分析"/></h1>
+        <h1><img src="{{ url_for('static', filename='images/home-logo.png') }}" alt="{{ platform.platform_name }}"/></h1>
         <hr>
         <form id="upload-form" onsubmit="handleFileUpload(event)" enctype="multipart/form-data">
             <label class="form-label">选择分析文件(仅支持*.log文件，支持Nginx、Apache的日志文件)：</label>
