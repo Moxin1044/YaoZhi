@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . /app
 
 # 安装依赖（如果有requirements.txt文件）
-RUN pip install --no-cache-dir -r requirements.txt -i -i https://mirrors.cernet.edu.cn/pypi/web/simple
+RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.cernet.edu.cn/pypi/web/simple
 
 # 开放容器的7100端口
 EXPOSE 7100
