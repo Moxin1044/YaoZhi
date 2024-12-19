@@ -265,9 +265,8 @@ def index():
         if is_access_stats_enabled():
             # 异步写入日志
             Thread(target=log_user_activity, args=(ip, nowtime, ua)).start()
-
-
-        return render_template('index.html')
+        platform = get_platform_info_from_db()
+        return render_template('index.html', platform=platform)
 
     if request.method == 'POST':
 
@@ -1029,7 +1028,7 @@ def get_platform_info_from_db():
     cursor = conn.cursor()
 
     # 查询平台信息
-    cursor.execute("SELECT platform_name, platfrom_keyword, paltfrom_descrip FROM settings WHERE id = 1")
+    cursor.execute("SELECT platform_name, platform_keyword, paltform_descrip FROM settings WHERE id = 1")
     setting = cursor.fetchone()
 
     conn.close()
@@ -1037,8 +1036,8 @@ def get_platform_info_from_db():
     if setting:
         return {
             "platform_name": setting["platform_name"],
-            "platform_keywords": setting["platfrom_keyword"],
-            "platform_description": setting["paltfrom_descrip"]
+            "platform_keywords": setting["platform_keyword"],
+            "platform_description": setting["paltform_descrip"]
         }
     else:
         return None
