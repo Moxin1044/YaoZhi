@@ -36,6 +36,19 @@ def verify_token(token):
     except jwt.InvalidTokenError:
         return None  # Token无效
 
+def get_client_ip():
+    # 先获取 request.remote_addr 的 IP 地址
+    client_ip = request.remote_addr
+
+    # 如果 IP 是 '127.' 或 '172.' 内网地址，则尝试从 X-Forwarded-For 获取真实 IP
+    if client_ip.startswith(('127.', '172.')):
+        # 获取 X-Forwarded-For 头部中的真实 IP（如果存在）
+        forwarded_for = request.headers.get('X-Forwarded-For')
+        if forwarded_for:
+            # X-Forwarded-For 可能包含多个 IP 地址，逗号分隔，取第一个
+            client_ip = forwarded_for.split(',')[0].strip()
+    return client_ip
+
 
 # 装饰器
 def login_required(f):
@@ -246,7 +259,7 @@ def process_task(task_id, file_path):
 def index():
     if request.method == 'GET':
         # 用户请求分析
-        ip = request.remote_addr  # 获取IP地址
+        ip = get_client_ip()
         ua = request.headers.get('User-Agent')  # 获取浏览器的User-Agent
         nowtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 获取当前时间
         if is_access_stats_enabled():
@@ -337,7 +350,7 @@ def admin_login():
         password = request.form.get('password')
         # 判断是否开启了登录日志
         if is_admin_login_stats_enabled():
-            ip = request.remote_addr  # 获取IP地址
+            ip = get_client_ip()  # 获取IP地址
             record_login(ip, username, password) # 作登录日志使用
         # 从数据库查询用户信息
         user = get_user_from_db(username)
