@@ -1,6 +1,9 @@
 # 遥知 - 日志分析工具
 该项目适用于分析Nginx和Apache的网站访问日志。
 
+注意：版本已更新，文档尚未同步，现在使用可以前往：https://yz.jixiannet.com/
+
+↓ - - - - - - - - - 下面是旧版本的！！！！！！
 # 使用帮助
 1. Clone本项目
 2. 安装requirements.txt中的依赖
