@@ -104,6 +104,9 @@
                     taskId = data.task_id;
                     startProgressCheck();
                 }
+                if(data.task_id === 0){
+                    alert("当前禁止文件上传")
+                }
             })
             .catch(error => console.error('上传文件时出错:', error));
 
@@ -171,9 +174,9 @@
                 sizeCell.textContent = result.Response_Size;
 
                 // 为“请求页面”列和表头添加class，使其能够换行
-                pageCell.classList.add('page-cell');
-                let pageHeader = document.querySelectorAll('.page-header');
-                pageHeader.forEach(header => header.classList.add('page-header'));
+                //pageCell.classList.add('page-cell');
+                //let pageHeader = document.querySelectorAll('.page-header');
+                //pageHeader.forEach(header => header.classList.add('page-header'));
 
                 row.appendChild(ipCell);
                 row.appendChild(timeCell);
@@ -272,7 +275,7 @@
                         <th>IP</th>
                         <th>时间</th>
                         <th>请求类型</th>
-                        <th class="page-header">请求页面</th>
+                        <th>请求页面</th>
                         <th>HTTP版本</th>
                         <th>状态码</th>
                         <th>返回包大小</th>

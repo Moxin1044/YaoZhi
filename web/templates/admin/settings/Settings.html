@@ -6,94 +6,101 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
   <title>平台设置</title>
-<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-touch-fullscreen" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/materialdesignicons.min.css')  }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css')  }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css')  }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/materialdesignicons.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css') }}">
 </head>
 
 <body>
   <div class="container-fluid">
-
     <div class="row">
-
       <div class="col-lg-12">
         <div class="card">
           <header class="card-header">
-            <div class="card-title"> 平台设置                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </div>
+            <div class="card-title"> 平台设置 </div>
           </header>
           <div class="card-body">
+            <!-- 显示 flash 提示信息 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-dismissible
+                             {% if category == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
             <!-- 平台设置表单 -->
             <form method="POST">
+              <!-- 平台名称 -->
+              <div class="form-group">
+                <label for="platform_name">平台名称</label>
+                <input type="text" class="form-control" id="platform_name" name="platform_name"
+                       placeholder="请输入平台名称" value="{{ setting['platform_name'] }}" required>
+              </div>
+
+              <!-- 平台关键词 -->
+              <div class="form-group">
+                <label for="platform_keywords">平台关键词</label>
+                <input type="text" class="form-control" id="platform_keywords" name="platform_keywords"
+                       placeholder="请输入平台关键词（用逗号分隔）" value="{{ setting['platform_keyword'] }}">
+              </div>
+
+              <!-- 平台描述 -->
+              <div class="form-group">
+                <label for="platform_description">平台描述</label>
+                <textarea class="form-control" id="platform_description" name="platform_description" rows="3"
+                          placeholder="请输入平台描述">{{ setting['paltform_descrip'] }}</textarea>
+              </div>
+
               <!-- 是否开启访问统计 -->
               <div class="form-group">
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="enable_access_stats" name="enable_access_stats">
-                  <label class="form-check-label" for="enable_access_stats">
-                    是否开启访问统计
-                  </label>
+                  <input class="form-check-input" type="checkbox" id="enable_access_stats" name="enable_access_stats"
+                         {% if setting['logs'] == 1 %}checked{% endif %}>
+                  <label class="form-check-label" for="enable_access_stats">是否开启访问统计</label>
                 </div>
               </div>
 
               <!-- 是否开启后台登录统计 -->
               <div class="form-group">
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="enable_admin_login_stats" name="enable_admin_login_stats">
-                  <label class="form-check-label" for="enable_admin_login_stats">
-                    是否开启后台登录统计
-                  </label>
+                  <input class="form-check-input" type="checkbox" id="enable_admin_login_stats" name="enable_admin_login_stats"
+                         {% if setting['login'] == 1 %}checked{% endif %}>
+                  <label class="form-check-label" for="enable_admin_login_stats">是否开启后台登录统计</label>
                 </div>
-              </div>
-
-              <!-- 平台名称 -->
-              <div class="form-group">
-                <label for="platform_name">平台名称</label>
-                <input type="text" class="form-control" id="platform_name" name="platform_name" placeholder="请输入平台名称" required>
-              </div>
-
-              <!-- 平台关键词 -->
-              <div class="form-group">
-                <label for="platform_keywords">平台关键词</label>
-                <input type="text" class="form-control" id="platform_keywords" name="platform_keywords" placeholder="请输入平台关键词（用逗号分隔）">
-              </div>
-
-              <!-- 平台描述 -->
-              <div class="form-group">
-                <label for="platform_description">平台描述</label>
-                <textarea class="form-control" id="platform_description" name="platform_description" rows="3" placeholder="请输入平台描述"></textarea>
               </div>
 
               <!-- 是否允许上传 -->
               <div class="form-group">
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="enable_upload" name="enable_upload">
-                  <label class="form-check-label" for="enable_upload">
-                    允许上传
-                  </label>
+                  <input class="form-check-input" type="checkbox" id="enable_upload" name="enable_upload"
+                         {% if setting['upload'] == 1 %}checked{% endif %}>
+                  <label class="form-check-label" for="enable_upload">允许上传</label>
                 </div>
               </div>
 
               <!-- 提交按钮 -->
-                <div class="text-end">
-                  <button type="submit" class="btn btn-primary">保存设置</button>
-                </div>
+              <div class="text-end">
+                <button type="submit" class="btn btn-primary">保存设置</button>
+              </div>
             </form>
           </div>
-
         </div>
       </div>
-
-
     </div>
   </div>
-  </div>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js')  }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/main.min.js')  }}"></script>
+
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/main.min.js') }}"></script>
 </body>
 
 </html>
