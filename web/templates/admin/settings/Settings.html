@@ -26,7 +26,61 @@
             <div class="card-title"> 平台设置                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </div>
           </header>
           <div class="card-body">
-            <!-- 主要功能 -->
+            <!-- 平台设置表单 -->
+            <form method="POST">
+              <!-- 是否开启访问统计 -->
+              <div class="form-group">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="enable_access_stats" name="enable_access_stats">
+                  <label class="form-check-label" for="enable_access_stats">
+                    是否开启访问统计
+                  </label>
+                </div>
+              </div>
+
+              <!-- 是否开启后台登录统计 -->
+              <div class="form-group">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="enable_admin_login_stats" name="enable_admin_login_stats">
+                  <label class="form-check-label" for="enable_admin_login_stats">
+                    是否开启后台登录统计
+                  </label>
+                </div>
+              </div>
+
+              <!-- 平台名称 -->
+              <div class="form-group">
+                <label for="platform_name">平台名称</label>
+                <input type="text" class="form-control" id="platform_name" name="platform_name" placeholder="请输入平台名称" required>
+              </div>
+
+              <!-- 平台关键词 -->
+              <div class="form-group">
+                <label for="platform_keywords">平台关键词</label>
+                <input type="text" class="form-control" id="platform_keywords" name="platform_keywords" placeholder="请输入平台关键词（用逗号分隔）">
+              </div>
+
+              <!-- 平台描述 -->
+              <div class="form-group">
+                <label for="platform_description">平台描述</label>
+                <textarea class="form-control" id="platform_description" name="platform_description" rows="3" placeholder="请输入平台描述"></textarea>
+              </div>
+
+              <!-- 是否允许上传 -->
+              <div class="form-group">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="enable_upload" name="enable_upload">
+                  <label class="form-check-label" for="enable_upload">
+                    允许上传
+                  </label>
+                </div>
+              </div>
+
+              <!-- 提交按钮 -->
+                <div class="text-end">
+                  <button type="submit" class="btn btn-primary">保存设置</button>
+                </div>
+            </form>
           </div>
 
         </div>

@@ -243,8 +243,10 @@ def admin():
     # 验证Token有效性
     user_data = verify_token(token)
     if user_data:
-        # 如果Token有效，进入正常功能
-        return render_template('admin/index.html')
+        # 如果Token有效，获取用户名
+        username = user_data.get('username')
+        # 传递用户名到模板
+        return render_template('admin/index.html', username=username)
     # 如果Token无效或不存在，重定向到登录页面
     return redirect(url_for('admin_login'))
 
