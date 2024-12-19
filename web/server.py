@@ -83,6 +83,48 @@ def init_db():
                       id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                       username TEXT NOT NULL,
                       password TEXT NOT NULL);''')
+        db.execute('''CREATE TABLE IF NOT EXISTS settings (
+                      id integer,
+                      platform_name TEXT,
+                      platfrom_keyword TEXT,
+                      paltfrom_descrip TEXT);''')
+        # 获取数据库连接
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 检查是否存在id=1的数据
+        cursor.execute("SELECT * FROM settings WHERE id = 1")
+        result = cursor.fetchone()
+
+        if result:
+            # 如果存在id=1的数据，打印信息并返回
+            print("数据已存在，id=1的数据不处理。")
+        else:
+            # 如果不存在id=1的数据，执行插入操作
+            cursor.execute('''INSERT INTO settings (id, platform_name, platfrom_keyword, paltfrom_descrip)
+                                 VALUES (1, ?, ?, ?)''', (
+                '遥知 - Web日志分析',
+                '遥知，Web日志分析，在线日志分析，日志工具，即现日志，日志分析工具，分析工具，日志检查，日志审计',
+                '遥知是一款在线日志分析工具，能够方便统计Web日志、请求者访问频次、快速检索日志内容，进行日志处理。'
+            ))
+            conn.commit()
+            print("插入数据成功！")
+            # 检查是否存在id=1的数据
+            cursor.execute("SELECT * FROM users WHERE id = 1")
+            result = cursor.fetchone()
+
+            if result:
+                # 如果存在id=1的数据，打印信息并返回
+                print("数据已存在，id=1的数据不处理。")
+            else:
+                # 如果不存在id=1的数据，执行插入操作
+                cursor.execute('''INSERT INTO users (id, username, password)
+                                         VALUES (1, ?, ?)''', (
+                    'admin',
+                    '$0e9772e2436a877d3523c986c262580a3805eea0ff9110efdc3d0674d8a3eba78aab5083a2031e3d2f501f28b678a669a0ef284bd02c8f2f915c9a16dd13a8dd'
+                ))
+                conn.commit()
+                print("插入数据成功！")
 
 
 init_db()
