@@ -1,163 +1,170 @@
 <!DOCTYPE html>
 <html lang="zh">
 
-<head>
-  <meta http-equiv="Content-Type"content="text/html; charset=UTF-8">
-  <meta http-equiv="X-UA-Compatible"content="IE=edge">
-  <meta name="viewport"content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-  <title>首页 - 遥知 - Web日志分析</title>
-  <link rel="shortcut icon"type="image/x-icon"href="{{ url_for('static', filename='images/favicon.ico') }}">
-  <meta name="apple-mobile-web-app-capable"content="yes">
-  <meta name="apple-touch-fullscreen"content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style"content="default">
-  <link rel="stylesheet"type="text/css"href="{{ url_for('static', filename='css/materialdesignicons.min.css') }}">
-  <link rel="stylesheet"type="text/css"href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <link rel="stylesheet"type="text/css"href="{{ url_for('static', filename='css/animate.min.css') }}">
-  <link rel="stylesheet"type="text/css"href="{{ url_for('static', filename='css/style.min.css') }}">
-  <link rel="stylesheet"type="text/css"
-    href="{{ url_for('static', filename='js/bootstrap-multitabs/multitabs.min.css') }}">
-</head>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+		<title>首页 - 遥知 - Web日志分析</title>
+		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-touch-fullscreen" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<link rel="stylesheet" type="text/css"
+			href="{{ url_for('static', filename='css/materialdesignicons.min.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/animate.min.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css') }}">
+		<link rel="stylesheet" type="text/css"
+			href="{{ url_for('static', filename='js/bootstrap-multitabs/multitabs.min.css') }}">
+	</head>
 
-<body class="lyear-index">
-  <div class="lyear-layout-web">
-    <div class="lyear-layout-container">
-      <!--左侧导航-->
-      <aside class="lyear-layout-sidebar">
+	<body class="lyear-index">
+		<div class="lyear-layout-web">
+			<div class="lyear-layout-container">
+				<!--左侧导航-->
+				<aside class="lyear-layout-sidebar">
 
-        <!-- logo -->
-        <div id="logo"class="sidebar-header">
-          <a href="{{ url_for("index") }}"><img src="{{ url_for('static', filename='images/logo-sidebar.png') }}"
-              title="LightYear"alt="LightYear"/></a>
-        </div>
-        <div class="lyear-layout-sidebar-info lyear-scroll">
+					<!-- logo -->
+					<div id="logo" class="sidebar-header">
+						<a href="{{ url_for("index") }}"><img
+								src="{{ url_for('static', filename='images/logo-sidebar.png') }}" title="LightYear"
+								alt="LightYear" /></a>
+					</div>
+					<div class="lyear-layout-sidebar-info lyear-scroll">
 
-          <nav class="sidebar-main">
+						<nav class="sidebar-main">
 
-            <ul class="nav-drawer">
-              <li class="nav-item active">
-                <a class="multitabs"href="{{ url_for("admin_home") }}"id="default-page">
-                  <i class="mdi mdi-shield-crown"></i>
-                  <span>后台首页</span>
-                </a>
-              </li>
-              <li class="nav-item nav-item-has-subnav">
-                <a href="javascript:void(0)">
-                  <i class="mdi mdi-calendar-check"></i>
-                  <span>任务</span>
-                </a>
-                <ul class="nav nav-subnav">
-                  <li> <a class="multitabs"href="{{ url_for("admin_task_Management") }}">任务管理</a> </li>
-                </ul>
-              </li>
-              <li class="nav-item nav-item-has-subnav">
-                <a href="javascript:void(0)">
-                  <i class="mdi mdi-account"></i>
-                  <span>人员</span>
-                </a>
-                <ul class="nav nav-subnav">
-                  <li> <a class="multitabs"href="{{ url_for("admin_personne_User_Management") }}">用户管理</a> </li>
-                  <li> <a class="multitabs"href="{{ url_for("admin_personne_Customer_Analysis") }}">客户分析</a> </li>
-                </ul>
-              </li>
-              <li class="nav-item nav-item-has-subnav">
-                <a href="javascript:void(0)">
-                  <i class="mdi mdi-cogs"></i>
-                  <span>设置</span>
-                </a>
-                <ul class="nav nav-subnav">
-                  <li> <a class="multitabs"href="{{ url_for("admin_settings") }}">平台设置</a> </li>
-                </ul>
-              </li>
-            </ul>
-          </nav>
+							<ul class="nav-drawer">
+								<li class="nav-item active">
+									<a class="multitabs" href="{{ url_for("admin_home") }}" id="default-page">
+										<i class="mdi mdi-shield-crown"></i>
+										<span>后台首页</span>
+									</a>
+								</li>
+								<li class="nav-item nav-item-has-subnav">
+									<a href="javascript:void(0)">
+										<i class="mdi mdi-calendar-check"></i>
+										<span>任务</span>
+									</a>
+									<ul class="nav nav-subnav">
+										<li> <a class="multitabs" href="{{ url_for("admin_task_Management") }}">任务管理</a>
+										</li>
+									</ul>
+								</li>
+								<li class="nav-item nav-item-has-subnav">
+									<a href="javascript:void(0)">
+										<i class="mdi mdi-account"></i>
+										<span>人员</span>
+									</a>
+									<ul class="nav nav-subnav">
+										<li> <a class="multitabs"
+												href="{{ url_for("admin_personne_User_Management") }}">用户管理</a> </li>
+										<li> <a class="multitabs"
+												href="{{ url_for("admin_personne_Customer_Analysis") }}">客户分析</a> </li>
+									</ul>
+								</li>
+								<li class="nav-item nav-item-has-subnav">
+									<a href="javascript:void(0)">
+										<i class="mdi mdi-cogs"></i>
+										<span>设置</span>
+									</a>
+									<ul class="nav nav-subnav">
+										<li> <a class="multitabs" href="{{ url_for("admin_settings") }}">平台设置</a> </li>
+									</ul>
+								</li>
+							</ul>
+						</nav>
 
-          <div class="sidebar-footer">
-            <p class="copyright">
-              <span>Copyright &copy; 2024. </span>
-              <a target="_blank"href="http://www.jixiannet.com">JiXianNet</a>
-              <span> All rights reserved.</span>
-            </p>
-          </div>
-        </div>
+						<div class="sidebar-footer">
+							<p class="copyright">
+								<span>Copyright &copy; 2024. </span>
+								<a target="_blank" href="http://www.jixiannet.com">JiXianNet</a>
+								<span> All rights reserved.</span>
+							</p>
+						</div>
+					</div>
 
-      </aside>
-      <!--End 左侧导航-->
+				</aside>
+				<!--End 左侧导航-->
 
-      <!--头部信息-->
-      <header class="lyear-layout-header">
+				<!--头部信息-->
+				<header class="lyear-layout-header">
 
-        <nav class="navbar">
+					<nav class="navbar">
 
-          <div class="navbar-left">
-            <div class="lyear-aside-toggler">
-              <span class="lyear-toggler-bar"></span>
-              <span class="lyear-toggler-bar"></span>
-              <span class="lyear-toggler-bar"></span>
-            </div>
-          </div>
+						<div class="navbar-left">
+							<div class="lyear-aside-toggler">
+								<span class="lyear-toggler-bar"></span>
+								<span class="lyear-toggler-bar"></span>
+								<span class="lyear-toggler-bar"></span>
+							</div>
+						</div>
 
-          <ul class="navbar-right d-flex align-items-center">
+						<ul class="navbar-right d-flex align-items-center">
 
 
-            <!--个人头像内容-->
-            <li class="dropdown">
-              <a href="javascript:void(0)"data-bs-toggle="dropdown"class="dropdown-toggle">
-                <img class="avatar-md rounded-circle"src="{{ url_for('static', filename='images/users/avatar.png') }}"
-                  alt="{{ username }}"/>
-                <span style="margin-left: 10px;">{{ username }}</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a class="multitabs dropdown-item"data-url="{{ url_for("admin_settings_Modify_Password") }}"
-                    href="javascript:void(0)">
-                    <i class="mdi mdi-lock-outline"></i>
-                    <span>修改密码</span>
-                  </a>
-                </li>
-                <li class="dropdown-divider"></li>
-                <li>
-                  <a class="dropdown-item"href="{{ url_for("admin_logout") }}">
-                    <i class="mdi mdi-logout-variant"></i>
-                    <span>退出登录</span>
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item"href="{{ url_for("index") }}">
-                    <i class="mdi mdi-home-account"></i>
-                    <span>用户首页</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-            <!--End 个人头像内容-->
-          </ul>
+							<!--个人头像内容-->
+							<li class="dropdown">
+								<a href="javascript:void(0)" data-bs-toggle="dropdown" class="dropdown-toggle">
+									<img class="avatar-md rounded-circle"
+										src="{{ url_for('static', filename='images/users/avatar.png') }}"
+										alt="{{ username }}" />
+									<span style="margin-left: 10px;">{{ username }}</span>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li>
+										<a class="multitabs dropdown-item"
+											data-url="{{ url_for("admin_settings_Modify_Password") }}"
+											href="javascript:void(0)">
+											<i class="mdi mdi-lock-outline"></i>
+											<span>修改密码</span>
+										</a>
+									</li>
+									<li class="dropdown-divider"></li>
+									<li>
+										<a class="dropdown-item" href="{{ url_for("admin_logout") }}">
+											<i class="mdi mdi-logout-variant"></i>
+											<span>退出登录</span>
+										</a>
+									</li>
+									<li>
+										<a class="dropdown-item" href="{{ url_for("index") }}">
+											<i class="mdi mdi-home-account"></i>
+											<span>用户首页</span>
+										</a>
+									</li>
+								</ul>
+							</li>
+							<!--End 个人头像内容-->
+						</ul>
 
-        </nav>
+					</nav>
 
-      </header>
-      <!--End 头部信息-->
+				</header>
+				<!--End 头部信息-->
 
-      <!--页面主要内容-->
-      <main class="lyear-layout-content">
+				<!--页面主要内容-->
+				<main class="lyear-layout-content">
 
-        <div id="iframe-content"></div>
+					<div id="iframe-content"></div>
 
-      </main>
-      <!--End 页面主要内容-->
-    </div>
-  </div>
+				</main>
+				<!--End 页面主要内容-->
+			</div>
+		</div>
 
-  <script type="text/javascript"src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-  <script type="text/javascript"src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
-  <script type="text/javascript"src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-  <script type="text/javascript"src="{{ url_for('static', filename='js/perfect-scrollbar.min.js') }}"></script>
-  <script type="text/javascript"
-    src="{{ url_for('static', filename='js/bootstrap-multitabs/multitabs.min.js') }}"></script>
-  <script type="text/javascript"src="{{ url_for('static', filename='js/jquery.cookie.min.js') }}"></script>
-  <script type="text/javascript"src="{{ url_for('static', filename='js/index.min.js') }}"></script>
-  <script type="text/javascript">
-    $(document).ready(function (e) { });
-  </script>
-</body>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/perfect-scrollbar.min.js') }}"></script>
+		<script type="text/javascript"
+			src="{{ url_for('static', filename='js/bootstrap-multitabs/multitabs.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.cookie.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/index.min.js') }}"></script>
+		<script type="text/javascript">
+			$(document).ready(function(e) {});
+		</script>
+	</body>
 
 </html>

@@ -1,0 +1,85 @@
+.slider-btn {
+	position:absolute;
+	width:44px;
+	height:44px;
+	left:0px;
+	top:-7px;
+	z-index:12;
+	cursor:pointer;
+    font-family: "Material Design Icons";
+    font-size: 24px;
+    background-color: #fcfdfe;
+    -wekit-border-radius: 50%;
+    border-radius: 50%;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #ebebeb;
+    -webkit-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.075);
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.075);
+	transition:inherit
+}
+.slider-btn:after {
+    content: "\F073F";
+}
+.ver-tips {
+	position:absolute;
+	left:0;
+	bottom:-22px;
+	background:rgba(255,255,255,.75);
+	height:22px;
+	line-height:22px;
+	font-size:12px;
+	width:100%;
+	margin:0;
+	text-align:left;
+	padding:0 8px;
+	transition:all .4s
+}
+.slider-tips {
+	bottom:0
+}
+.ver-tips i {
+	display:inline-block;
+	width:22px;
+	height:22px;
+	vertical-align:top;
+    font-family: "Material Design Icons";
+    font-style: normal;
+}
+.ver-tips i:after {
+    content: "\F0133";
+}
+.ver-tips span {
+	display:inline-block;
+	vertical-align:top;
+	line-height:22px;
+	color:#455
+}
+.active-tips {
+	display:block
+}
+.hidden {
+	display:none
+}
+.re-btn {
+	position:absolute;
+	left:0;
+	bottom:0;
+	height:28px;
+	padding:0 10px
+}
+.re-btn a {
+	display:inline-block;
+	width:14px;
+	height:14px;
+    font-family: "Material Design Icons";
+    font-size: 20px;
+    color: #4d5259;
+	cursor:pointer
+}
+.re-btn a:after {
+    content: "\F0453";
+}
+.re-btn a:hover {
+	color: #007bff;
+}

@@ -4,7 +4,7 @@ import jwt
 import hashlib
 import sqlite3
 from flask import Flask, render_template, request, jsonify, abort, current_app, make_response, redirect, url_for, \
-    send_from_directory, send_file
+    send_from_directory, send_file, flash
 from werkzeug.security import check_password_hash  # 用于密码验证
 import core
 from datetime import datetime, timedelta
@@ -280,13 +280,49 @@ def admin_settings():
 def admin_settings_Modify_Password():
     # 从Cookie中获取Token
     token = request.cookies.get('auth_token')
+
     # 验证Token有效性
     user_data = verify_token(token)
     if user_data:
-        # 如果Token有效，进入正常功能
+        # Token有效，进入正常功能
+        if request.method == 'POST':
+            # 获取表单数据
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+
+            # 获取当前用户的用户名（假设已经通过token获取了用户信息）
+            username = user_data['username']  # 这是你从token解码得到的用户信息
+
+            # 验证密码是否一致
+            if new_password != confirm_password:
+                flash('新密码和确认密码不一致', 'error')
+                return redirect(url_for('admin_settings_Modify_Password'))
+
+            # 获取数据库连接
+            conn = get_db()
+            cursor = conn.cursor()
+
+            # 查询用户的当前密码
+            cursor.execute('SELECT password FROM users WHERE username = ?', (username,))
+            user = cursor.fetchone()
+
+            if user and check_password_hash(user['password'], current_password):
+                # 当前密码正确，更新密码
+                hashed_password = generate_password_hash(new_password)
+                cursor.execute('UPDATE users SET password = ? WHERE username = ?', (hashed_password, username))
+                conn.commit()
+
+                flash('密码修改成功', 'success')
+                return redirect(url_for('admin_settings_Modify_Password'))
+            else:
+                # 当前密码不正确
+                flash('当前密码错误', 'error')
+                return redirect(url_for('admin_settings_Modify_Password'))
         return render_template('admin/settings/Modify_Password.html')
-    # 如果Token无效或不存在，重定向到登录页面
-    return redirect(url_for('admin_login'))
+    else:
+        # 如果Token无效或不存在，重定向到登录页面
+        return redirect(url_for('admin_login'))
 
 
 

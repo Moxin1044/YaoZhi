@@ -13,6 +13,7 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/animate.min.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/imgver/imgver.min.css') }}/">
 <style>
 </style>
 </head>
@@ -47,8 +48,9 @@
           <label for="password">密码</label>
           <input type="password" class="form-control" id="password" name="password" placeholder="请输入您的密码" required>
         </div>
-
-
+        <div class="mb-3 text-center">
+               <div id="imgVer" class="d-inline-block"></div>
+        </div>
         <div class="mb-3 d-grid">
           <button class="btn btn-primary" type="submit">立即登录</button>
         </div>
@@ -58,9 +60,9 @@
     </div>
     {% endif %}
       </form>
-      <p class="text-center text-muted mt-3">Copyright ©2024 即现（信阳）网络科技有限公司 版权所有</p>
+      <p class="text-center text-muted mt-3">Copyright ©2024 <a href="https://www.jixiannet.com/" target="_blank">即现（信阳）网络科技有限公司</a> 版权所有</p>
       <p class="text-center text-muted mt-3">计算机软件著作权登记号：2024SR0919062
-      <p class="text-center text-muted mt-3" href="https://register.ccopyright.com.cn/query.html" target="_blank">点击查询</a> |
+      <p class="text-center text-muted mt-3"> <a href="https://register.ccopyright.com.cn/query.html" target="_blank">点击查询</a> |
       <a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2024070026号-1</a></p>
     </div>
   </div>
@@ -70,5 +72,41 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/lyear-loading.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-notify.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/imgver/jquery.img.ver.min.js') }}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var captchaVerified = false;  // 标记验证码是否通过验证
+
+   imgVer({
+        el:'$("#imgVer")',
+        width:'260',
+        height:'116',
+        img:[
+            '{{ url_for('static', filename='images/imgVer/1.jpg') }}',
+            '{{ url_for('static', filename='images/imgVer/2.jpg') }}',
+            '{{ url_for('static', filename='images/imgVer/3.jpg') }}',
+            '{{ url_for('static', filename='images/imgVer/4.jpg') }}',
+            '{{ url_for('static', filename='images/imgVer/5.jpg') }}',
+            '{{ url_for('static', filename='images/imgVer/6.jpg') }}',
+            '{{ url_for('static', filename='images/imgVer/7.jpg') }}'
+        ],
+        success: function () {
+            console.log("验证码成功验证");
+            captchaVerified = true;  // 验证成功
+        },
+        error: function () {
+            captchaVerified = false;  // 验证失败
+        }
+    });
+
+    // 提交表单前的验证
+    $('form').submit(function(event) {
+        if (!captchaVerified) {
+            event.preventDefault();  // 阻止表单提交
+            alert('请先完成验证码验证!');
+        }
+    });
+});
+</script>
 </body>
 </html>
