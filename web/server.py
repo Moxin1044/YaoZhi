@@ -15,7 +15,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = './uploads/logs/'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SECRET_KEY'] = '0d23d17f137e04b92831d5596bb7cd1d'  # 确保使用一个复杂的密钥
+app.config['SECRET_KEY'] = 'd7c2d531dcac8043207cfd73f3b60528318cf764f22b6bbb04b946e76ba7cfdd'  # 确保使用一个复杂的密钥
 
 # 用于生成Token
 def generate_token(username, password):
