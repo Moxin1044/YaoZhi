@@ -958,15 +958,15 @@ def get_platform_info():
     conn = get_db()
     cursor = conn.cursor()
     # 查询设置数据
-    cursor.execute("SELECT platform_name, platfrom_keyword, paltfrom_descrip FROM settings WHERE id = 1")
+    cursor.execute("SELECT platform_name, platform_keyword, paltform_descrip FROM settings WHERE id = 1")
     setting = cursor.fetchone()
     conn.close()
     # 返回结果
     if setting:
         return {
             "platform_name": setting["platform_name"],
-            "platform_keywords": setting["platfrom_keyword"],
-            "platform_description": setting["paltfrom_descrip"]
+            "platform_keywords": setting["platform_keyword"],
+            "platform_description": setting["paltform_descrip"]
         }
     else:
         return {"error": "Settings not found"}, 404
