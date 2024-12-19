@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>遥知 - Web日志分析</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- 添加FontAwesome图标库 -->#}
     <style>
         h1 {
             text-align: center;
@@ -14,7 +13,6 @@
             text-align: center;
             white-space: nowrap; /* 默认不换行 */
         }
-        /* 仅让“请求页面”列的表头和表内容支持换行 */
         .center-table th.page-header, .center-table td.page-cell {
             white-space: normal; /* 允许换行 */
             word-wrap: break-word;
@@ -72,6 +70,10 @@
         }
         .center-bottom {
             margin-bottom: 100px;
+        }
+        /* 隐藏分析内容 */
+        .analysis-container {
+            display: none;
         }
     </style>
     <script>
@@ -141,6 +143,7 @@
                 .then(data => {
                     if (data.success && data.results) {
                         renderResultsTable(data.results);
+                        document.querySelector('.analysis-container').style.display = 'block'; // 显示分析结果
                     } else {
                         alert("无法获取分析结果");
                     }
@@ -174,8 +177,8 @@
                 sizeCell.textContent = result.Response_Size;
 
                 // 为“请求页面”列和表头添加class，使其能够换行
-                //pageCell.classList.add('page-cell');
-                //let pageHeader = document.querySelectorAll('.page-header');
+                pageCell.classList.add('page-cell');
+                let pageHeader = document.querySelectorAll('.page-header');
                 //pageHeader.forEach(header => header.classList.add('page-header'));
 
                 row.appendChild(ipCell);
@@ -224,11 +227,8 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <!-- Logo 和品牌 -->
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <!-- Logo -->
                 <img src="{{ url_for('static', filename='images/yaozhi.png') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
-                <!-- 标题 -->
                 遥知 - Web日志分析
             </a>
             <div class="collapse navbar-collapse justify-content-end">
@@ -238,7 +238,7 @@
                             后台管理
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for("admin_login") }}">后台管理</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_login') }}">后台管理</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -267,47 +267,48 @@
         </div>
 
         <br>
-        <h2>日志文件分析</h2>
-        <div class="container-fluid center-div">
-            <table class="table center-table">
-                <thead>
-                    <tr>
-                        <th>IP</th>
-                        <th>时间</th>
-                        <th>请求类型</th>
-                        <th>请求页面</th>
-                        <th>HTTP版本</th>
-                        <th>状态码</th>
-                        <th>返回包大小</th>
-                    </tr>
-                </thead>
-                <tbody id="result-table-body">
-                    <!-- 动态填充分析结果 -->
-                </tbody>
-            </table>
-        </div>
 
-        <h2>IP详情分析</h2>
-        <div class="container-fluid center-div center-bottom">
-            <table class="table center-table">
-                <thead>
-                    <tr>
-                        <th class="no-wrap">IP</th>
-                        <th class="no-wrap">请求频次</th>
-                        <th class="no-wrap">所属国家</th>
-                    </tr>
-                </thead>
-                <tbody id="ip-info-body">
-                    <!-- 动态填充IP详情分析 -->
-                </tbody>
-            </table>
-        </div>
+        <!-- 动态显示分析结果部分 -->
+        <div class="analysis-container">
+            <h2>日志文件分析</h2>
+            <div class="container-fluid center-div">
+                <table class="table center-table">
+                    <thead>
+                        <tr>
+                            <th>IP</th>
+                            <th>时间</th>
+                            <th>请求类型</th>
+                            <th>请求页面</th>
+                            <th>HTTP版本</th>
+                            <th>状态码</th>
+                            <th>返回包大小</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-table-body">
+                        <!-- 动态填充分析结果 -->
+                    </tbody>
+                </table>
+            </div>
 
-        <div id="ip-info" class="container"></div>
+            <h2>IP详情分析</h2>
+            <div class="container-fluid center-div center-bottom">
+                <table class="table center-table">
+                    <thead>
+                        <tr>
+                            <th class="no-wrap">IP</th>
+                            <th class="no-wrap">请求频次</th>
+                            <th class="no-wrap">所属国家</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ip-info-body">
+                        <!-- 动态填充IP详情分析 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
-    <!-- 版权和备案信息 -->
     <div class="footer">
         <p>Copyright ©2024 <a href="https://www.jixiannet.com/" target="_blank">即现（信阳）网络科技有限公司</a> 版权所有</p>
         <p>计算机软件著作权登记号：2024SR0919062
