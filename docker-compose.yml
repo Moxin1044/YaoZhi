@@ -7,13 +7,9 @@ services:
     ports:
       - "7100:7100"
     volumes:
-      - .:/app                  # 挂载当前目录到容器内 /app
-      - sqlite_data:/app/tasks.db   # 持久化 SQLite 数据库
-      - uploads_data:/app/uploads  # 持久化上传的文件
+      - .:/app                 # 挂载当前目录到容器内 /app
+      - ./tasks.db:/app/tasks.db   # 持久化 SQLite 数据库文件
+      - ./uploads:/app/uploads  # 持久化上传的文件
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
-
-volumes:
-  sqlite_data:   # 声明名为 sqlite_data 的卷
-  uploads_data:  # 声明名为 uploads_data 的卷
