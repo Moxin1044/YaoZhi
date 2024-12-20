@@ -6,6 +6,23 @@
     <title>{{ platform.platform_name }}</title>
     <meta name="description" content="{{ platform.platform_description }}">
     <meta name="keyword" content="{{ platform.platform_keywords }}">
+    <meta name="baidu-site-verification" content="codeva-rsT33WnkIJ" />
+    <script>
+        // 检测是否为移动设备
+        function isMobileDevice() {
+            return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        }
+
+        // 检测是否为微信浏览器
+        function isWeChat() {
+            return /MicroMessenger/i.test(navigator.userAgent);
+        }
+
+        // 如果是手机设备或微信浏览器，跳转
+        if (isMobileDevice() || isWeChat()) {
+            window.location.href = "https://h5.yz.jixiannet.com";
+        }
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <style>
         h1 {
