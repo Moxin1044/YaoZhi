@@ -8,8 +8,13 @@ import core
 from datetime import datetime, timedelta
 from threading import Thread
 import os
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+
+# 开启跨域
+CORS(app)
 
 # 创建上传日志文件的文件夹
 UPLOAD_FOLDER = './uploads/logs/'
