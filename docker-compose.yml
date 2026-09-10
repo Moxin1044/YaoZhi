@@ -1,15 +1,27 @@
-version: '3.8'
-
 services:
-  yaozhi-server:
-    build: .
-    image: jixiannet/yaozhi:latest
+  yaozhi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yaozhi:local
+    container_name: yaozhi
     ports:
       - "7100:7100"
-    volumes:
-      - .:/app                 # 挂载当前目录到容器内 /app
-      - ./tasks.db:/app/tasks.db   # 持久化 SQLite 数据库文件
-      - ./uploads:/app/uploads  # 持久化上传的文件
     environment:
-      - PYTHONUNBUFFERED=1
-    restart: always
+      TZ: Asia/Shanghai
+      YAOZHI_TZ: Asia/Shanghai
+      # 生产部署请改为随机字符串（未设置时使用内置默认值）
+      YAOZHI_SECRET_KEY: ${YAOZHI_SECRET_KEY:-}
+      # IP 归属地远程查询：1 开启（带磁盘缓存），0 关闭（离线环境建议关闭）
+      YAOZHI_GEO_REMOTE: ${YAOZHI_GEO_REMOTE:-1}
+      YAOZHI_TOP_LIMIT: "20"
+    volumes:
+      # 持久化：任务库、上传日志、归属地缓存
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:7100/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

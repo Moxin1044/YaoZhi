@@ -1,0 +1,21 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.git/
+.gitignore
+.github/
+
+# 运行期数据（容器内挂载卷，不打进镜像）
+data/
+uploads/
+output/
+artifacts/
+tasks.db
+*.log
+
+.idea/
+.vscode/
+.DS_Store

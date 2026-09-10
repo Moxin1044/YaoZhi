@@ -3,12 +3,14 @@ from werkzeug.security import check_password_hash, generate_password_hash  # 用
 from functools import wraps # 装饰器
 import jwt # PyJWT
 import hashlib
+import json
 import sqlite3
 import core
 from datetime import datetime, timedelta
 from threading import Thread
 import os
 from flask_cors import CORS
+from web.api import bp as api_bp, parse_stored_results
 
 
 app = Flask(__name__)
@@ -16,11 +18,23 @@ app = Flask(__name__)
 # 开启跨域
 CORS(app)
 
+# 注册 REST API（/api/v1/*）
+app.register_blueprint(api_bp)
+
 # 创建上传日志文件的文件夹
-UPLOAD_FOLDER = './uploads/logs/'
+UPLOAD_FOLDER = os.environ.get('YAOZHI_UPLOAD_DIR', './uploads/logs/')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SECRET_KEY'] = 'd7c2d531dcac8043207cfd73f3b60528318cf764f22b6bbb04b946e76ba7cfdd'  # 确保使用一个复杂的密钥
+# 密钥优先从环境变量读取，避免硬编码泄露
+app.config['SECRET_KEY'] = os.environ.get(
+    'YAOZHI_SECRET_KEY',
+    'd7c2d531dcac8043207cfd73f3b60528318cf764f22b6bbb04b946e76ba7cfdd',
+)
+# 分析参数
+# 归属地远程查询：默认开启（免费接口，结果带磁盘缓存；离线环境会自动超时降级）
+GEO_REMOTE_ENABLED = os.environ.get('YAOZHI_GEO_REMOTE', '1') == '1'
+ANALYSIS_TZ = os.environ.get('YAOZHI_TZ', 'Asia/Shanghai')
+TOP_LIMIT = int(os.environ.get('YAOZHI_TOP_LIMIT', '20'))
 
 # 用于生成Token
 def generate_token(username, password):
@@ -138,9 +152,13 @@ def record_login(ip, username, password):
     except Exception as e:
         print("Error recording login:", e)
 
+# 数据库路径可通过环境变量覆盖（容器部署时指向持久化卷）
+DB_PATH = os.environ.get('YAOZHI_DB', 'tasks.db')
+
+
 # 创建数据库连接
 def get_db():
-    conn = sqlite3.connect('tasks.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # Allows for column access by name
     return conn
 
@@ -230,35 +248,41 @@ init_db() # 初始化
 
 
 
-# 后台分析任务
+# 后台分析任务：解析 → 多维度分析 → 结果以 JSON 落库
 def process_task(task_id, file_path):
-    # 任务开始时设定状态
-    with get_db() as db:
-        db.execute('''UPDATE tasks SET status = ?, progress = ? WHERE task_id = ?''',
-                   ('分析中', 0, task_id))
+    def update(status, progress, results=None):
+        with get_db() as db:
+            if results is None:
+                db.execute('''UPDATE tasks SET status = ?, progress = ? WHERE task_id = ?''',
+                           (status, progress, task_id))
+            else:
+                db.execute('''UPDATE tasks SET status = ?, progress = ?, results = ? WHERE task_id = ?''',
+                           (status, progress, results, task_id))
 
-    # 解析日志并更新进度
-    data = core.batch_analysis_web(file_path)  # 解析文件
-    ip_calc = core.calc_ip(data)
-    ip_info = []
+    update('分析中', 5)
+    try:
+        geo = core.build_geo(
+            enabled=True,
+            remote=GEO_REMOTE_ENABLED,
+            cache_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data'),
+        )
+        result = core.analyze_file(
+            file_path,
+            tz_name=ANALYSIS_TZ,
+            geo=geo,
+            top_limit=TOP_LIMIT,
+        )
+    except Exception as exc:  # noqa: BLE001 - 记录失败原因，便于前端提示
+        update('失败', 100, json.dumps({'error': str(exc)}, ensure_ascii=False))
+        print(f"[task {task_id}] 分析失败: {exc}")
+        return None
 
-    with get_db() as db:
-        db.execute('''UPDATE tasks SET status = ?, progress = ? WHERE task_id = ?''',
-                   ('分析中', 50, task_id))
-    # --------------------------------
-    for i in ip_calc:
-        message = core.get_ip_message(i['IP'])
-        ip_info.append({"IP": i['IP'], "IP_Counts": i['IP_Counts'], "IP_location": message['IP_location']})
-    # --------------------------------
-    with get_db() as db:
-        db.execute('''UPDATE tasks SET status = ?, progress = ? WHERE task_id = ?''',
-                   ('分析中', 80, task_id))
-    # 将data和ip_info转换为字符串存储在数据库
-    with get_db() as db:
-        db.execute('''UPDATE tasks SET status = ?, progress = ?, results = ? WHERE task_id = ?''',
-                   ('完成', 100, str({'data': data, 'ip_info': ip_info}), task_id))
-    # 返回分析结果
-    return data, ip_info
+    update('分析中', 85)
+    payload = json.dumps(result, ensure_ascii=False, default=str)
+    update('完成', 100, payload)
+    summary = core.summarize(result)
+    print(f"[task {task_id}] 完成：{summary['requests']} 条请求，{summary['uv']} 个独立 IP")
+    return result
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -339,7 +363,10 @@ def get_task_results(task_id):
         task = db.execute('''SELECT results FROM tasks WHERE task_id = ?''', (task_id,)).fetchone()
 
     if task and task['results']:
-        results = eval(task['results'])  # 将字符串转换为字典（包括data和ip_info）
+        # 兼容新的 JSON 存储与旧的 Python 字面量存储；不再使用 eval（存在代码执行风险）
+        results = parse_stored_results(task['results'])
+        if not results:
+            return jsonify({'success': False, 'message': '结果解析失败'}), 500
         return jsonify({'success': True, 'results': results})
     else:
         return jsonify({'success': False, 'message': '结果未完成或未找到'}), 404
