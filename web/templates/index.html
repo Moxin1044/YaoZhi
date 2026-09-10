@@ -165,6 +165,22 @@
     </div>
 
     <div class="card chart-card">
+      <div class="card-head row">
+        <h3>国内访问地域分布</h3>
+        <span class="muted small" id="geoMeta"></span>
+      </div>
+      <div class="chart tall" id="chartGeo"></div>
+      <div class="table-scroll" style="margin-top: 14px">
+        <table class="data-table" id="geoTable">
+          <thead>
+            <tr><th>省份</th><th>请求数</th><th>占比</th><th>独立 IP</th><th>流量</th><th>主要城市</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card chart-card">
       <div class="card-head"><h3>访问热力图（星期 × 小时）</h3></div>
       <div class="chart tall" id="chartHeatmap"></div>
     </div>

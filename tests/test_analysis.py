@@ -284,10 +284,87 @@ def test_heatmap_shape(analyzer):
     assert sum(sum(row) for row in data["matrix"]) == 1000
 
 
+def test_extract_province():
+    from core.ipgeo import extract_city, extract_province
+    assert extract_province("中国 山东 济南市") == "山东"
+    assert extract_province("中国 浙江 杭州") == "浙江"
+    assert extract_province("中国 内蒙古自治区 呼和浩特") == "内蒙古"
+    assert extract_province("中国 广西壮族自治区 南宁") == "广西"
+    assert extract_province("中国 广东 广州市") == "广东"      # 不能误判为"广西"
+    assert extract_province("中国 香港特别行政区") == "香港"
+    assert extract_province("美国 弗吉尼亚州 Ashburn") is None
+    assert extract_province("") is None
+    assert extract_city("中国 山东 济南市", "山东") == "济南市"
+    assert extract_city("中国 浙江 杭州", "浙江") == "杭州"      # 以「州」结尾同样视为城市
+    assert extract_city("中国 江苏 南京", "江苏") == "南京"      # 无行政后缀时取省份之后的部分
+    assert extract_city("中国 山东", "山东") == ""               # 只有国家 + 省份时没有城市
+
+
+def test_geo_distribution():
+    """地域分布：省份聚合、内网/海外归类、覆盖率。"""
+    from core.ipgeo import IPGeoResolver as Geo
+    from tests.sample_data import generate_logs
+
+    records, _ = parse_text("\n".join(generate_logs(2000, seed=5)), TZ)
+    geo = Geo(enabled=True, remote=False)   # 离线：公网 IP 记入「未知」，内网/本地正常分类
+    analyzer = LogAnalyzer(records, tz=TZ, geo=geo)
+    data = analyzer.geo_distribution()
+
+    assert data["total"] == 2000
+    # 离线模式下没有省份数据，但要保证结构完整且分类求和等于总数
+    assert isinstance(data["provinces"], list)
+    accounted = data["internal"] + data["overseas"] + data["unknown"] + data["unresolved"] \
+        + sum(p["requests"] for p in data["provinces"])
+    assert accounted == 2000
+    # 样例日志含内网与本地地址
+    assert data["internal"] > 0
+    assert data["coverage"] > 0
+
+
+def test_geo_distribution_with_locations():
+    """注入固定的归属地结果，验证省份聚合与城市明细。"""
+    from datetime import datetime
+    from core.ipgeo import IPGeoResolver as Geo
+    from core.parser import LogRecord
+
+    def rec(ip, path="/", status=200, size=100):
+        return LogRecord(ip, datetime(2026, 8, 1, 10, 0, 0, tzinfo=TZ), "GET", path,
+                         "HTTP/1.1", status, size, "", "curl/8.5.0", "", "")
+
+    records = [rec("1.1.1.1")] * 50 + [rec("2.2.2.2")] * 30 + [rec("3.3.3.3")] * 20 + [rec("192.168.1.5")] * 10
+
+    class FakeGeo:
+        def resolve_many(self, ips):
+            return {
+                "1.1.1.1": "中国 山东 济南市",
+                "2.2.2.2": "中国 山东 青岛市",
+                "3.3.3.3": "中国 广东 深圳市",
+                "192.168.1.5": "内网",
+            }
+
+    analyzer = LogAnalyzer(records, tz=TZ, geo=FakeGeo())
+    data = analyzer.geo_distribution()
+
+    provinces = {p["name"]: p for p in data["provinces"]}
+    assert set(provinces) == {"山东", "广东"}
+    assert provinces["山东"]["requests"] == 80      # 50 + 30
+    assert provinces["山东"]["uv"] == 2
+    assert provinces["广东"]["requests"] == 20
+    # 排序按请求数降序
+    assert data["provinces"][0]["name"] == "山东"
+    # 城市明细
+    cities = {c["name"] for c in provinces["山东"]["top_cities"]}
+    assert cities == {"济南市", "青岛市"}
+    # 内网单独归类
+    assert data["internal"] == 10
+    assert data["max"] == 80
+    assert data["coverage"] == 100.0
+
+
 def test_analyze_all_returns_all_sections(analyzer):
     data = analyzer.analyze_all(10)
     expected = {"overview", "status_codes", "timeseries", "top_urls", "top_ips",
-                "clients", "referers", "methods", "errors", "suspicious", "heatmap"}
+                "clients", "referers", "methods", "errors", "suspicious", "heatmap", "geo"}
     assert expected.issubset(data.keys())
 
 
@@ -299,3 +376,5 @@ def test_empty_input_is_safe():
     assert analyzer.status_codes()["items"] == []
     assert analyzer.top_urls() == []
     assert analyzer.heatmap()["max"] == 0
+    geo = analyzer.geo_distribution()
+    assert geo["provinces"] == [] and geo["total"] == 0

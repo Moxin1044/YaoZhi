@@ -122,6 +122,10 @@ async function main() {
       check('错误表有数据', errRows > 0, `${errRows} 行`)
       const suspRows = await evaluate('document.querySelectorAll("#suspiciousTable tbody tr").length')
       check('可疑请求表有数据', suspRows > 0, `${suspRows} 行`)
+      const geoRows = await evaluate('document.querySelectorAll("#geoTable tbody tr").length')
+      check('地域分布表有数据', geoRows > 0, `${geoRows} 行`)
+      const geoMeta = await evaluate('document.getElementById("geoMeta").textContent')
+      check('地域覆盖率提示', /覆盖/.test(geoMeta), geoMeta.trim())
       const metricText = await evaluate('document.querySelector("#metrics .metric .value").textContent')
       check('首个指标有数值', /\d/.test(metricText), metricText)
       const consoleErrors = await evaluate('window.__errors ? window.__errors.length : 0')
@@ -156,6 +160,33 @@ async function main() {
     console.log('\n=== 截图 ===')
     const dark = await shot('dashboard-dark', 1600, 1000)
     check('暗色截图', true, dark)
+
+    // 单独截取地图区域（便于 README 展示）
+    try {
+      const geoBox = await evaluate(`(() => {
+        const el = document.getElementById('chartGeo');
+        if (!el) return null;
+        el.scrollIntoView({ block: 'center' });
+        const r = el.getBoundingClientRect();
+        // CDP 的 clip 使用文档坐标，必须叠加滚动偏移，否则会截到页面顶部
+        return { x: Math.max(0, Math.round(r.x + window.scrollX)),
+                 y: Math.max(0, Math.round(r.y + window.scrollY)),
+                 width: Math.round(r.width), height: Math.round(r.height) };
+      })()`)
+      if (geoBox && geoBox.width > 100) {
+        await sleep(1200)   // 等地图数据加载 + 重绘完成
+        const res = await send('Page.captureScreenshot', {
+          format: 'png',
+          clip: { ...geoBox, scale: 1 }
+        })
+        writeFileSync(`${OUT}geo-map.png`, Buffer.from(res.data, 'base64'))
+        check('地图区域截图', true, `${OUT}geo-map.png`)
+      } else {
+        check('地图区域截图', false, '未找到地图容器')
+      }
+    } catch (e) {
+      check('地图区域截图', false, e.message)
+    }
 
     await evaluate('document.getElementById("themeBtn").click()')
     await sleep(1200)

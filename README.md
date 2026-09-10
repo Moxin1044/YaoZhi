@@ -10,7 +10,8 @@
 
 ## 特性
 
-- **多维度分析**：11 个分析维度，覆盖流量、来源、客户端、错误与安全视角
+- **多维度分析**：12 个分析维度，覆盖流量、来源、客户端、地域、错误与安全视角
+- **国内地域热力图**：按省级行政区聚合访问量，地图热力呈现 + 省份明细（城市下钻），内网/海外/未知单独归类并给出解析覆盖率
 - **健壮的日志解析**：正则整行匹配（而非按空格切分），能正确处理 User-Agent 含空格、Referer 缺失、请求行为 `-`、带 vhost 前缀等真实情况；支持 nginx combined / common 与 apache combined
 - **正确的时区处理**：解析日志中的时区偏移并按目标时区归一（不再写死 +8）
 - **客户端与爬虫识别**：内置规则解析浏览器、操作系统、设备类型，并识别 Googlebot / Baiduspider / 各类采集与监控脚本
@@ -71,6 +72,11 @@ python -c "import core; print(core.analyze_file('/path/to/access.log')['overview
 | **错误分析** | 错误状态码分布、错误 URL Top 榜（含状态码构成）、错误来源 IP（含归属地）、最近错误明细 |
 | **可疑请求** | 命中常见攻击/探测特征的路径统计 |
 | **访问热力图** | 星期 × 小时 的访问量矩阵 |
+| **地域分布** | 按省级行政区聚合请求数/独立 IP/流量，地图热力呈现；附省份 Top 城市明细，内网/海外/未知单独归类，并给出解析覆盖率 |
+
+> 归属地解析未完成或未启用时，地图会显示已解析部分，并在标题右侧标注覆盖率与内网/海外/未知请求量。
+
+![地域分布地图](docs/images/geo-map.png)
 
 ## REST API
 
@@ -109,6 +115,7 @@ python -c "import core; print(core.analyze_file('/path/to/access.log')['overview
 | GET | `/api/v1/tasks/{id}/errors?limit=50` | 错误分析 |
 | GET | `/api/v1/tasks/{id}/suspicious?limit=50` | 可疑探测请求 |
 | GET | `/api/v1/tasks/{id}/heatmap` | 访问热力图 |
+| GET | `/api/v1/tasks/{id}/geo` | 地域分布（省级聚合，地图数据） |
 | GET | `/api/v1/tasks/{id}/export?format=json\|csv` | 结果导出 |
 
 ### 同步分析（无需建任务）

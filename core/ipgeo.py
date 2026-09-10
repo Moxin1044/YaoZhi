@@ -35,6 +35,58 @@ _PRIVATE_NETWORKS = tuple(
 )
 
 
+# 34 个省级行政区（短名），用于把归属地文本归一化到地图区域。
+# 顺序上把更长的名称放前面，避免"广东/广西"之类的误匹配。
+PROVINCES: tuple[str, ...] = (
+    "内蒙古", "黑龙江", "新疆", "西藏", "宁夏", "广西",
+    "北京", "天津", "河北", "山西", "辽宁", "吉林", "上海", "江苏", "浙江",
+    "安徽", "福建", "江西", "山东", "河南", "湖北", "湖南", "广东", "海南",
+    "重庆", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "台湾", "香港", "澳门",
+)
+
+# 特殊地址（非地理位置）
+SPECIAL_LOCATIONS = ("本地", "内网", "链路本地", "组播", "保留地址")
+
+
+def extract_province(location: str) -> str | None:
+    """从归属地文本中提取省级行政区短名；无法识别时返回 None。
+
+    例："中国 山东 济南市" → "山东"；"美国 弗吉尼亚州 Ashburn" → None
+    """
+    if not location:
+        return None
+    for province in PROVINCES:
+        if province in location:
+            return province
+    return None
+
+
+def extract_city(location: str, province: str | None = None) -> str:
+    """尽可能从归属地文本中提取城市名（用于省份下的城市明细）。
+
+    例："中国 山东 济南市" → "济南市"；"中国 江苏 南京" → "南京"
+    """
+    if not location:
+        return ""
+    parts = [p for p in location.replace(",", " ").split() if p]
+    candidates: list[str] = []
+    for part in parts:
+        if part in ("中国", "China"):
+            continue
+        if province and province in part:
+            continue
+        if part.endswith(("省", "自治区", "特别行政区")):
+            continue
+        candidates.append(part)
+
+    # 优先取带行政后缀的（市/州/盟/地区）
+    for candidate in candidates:
+        if candidate.endswith(("市", "州", "盟", "地区")):
+            return candidate
+    # 否则退回最后一个候选（常见于「中国 江苏 南京」这类无后缀形式）
+    return candidates[-1] if candidates else ""
+
+
 class IPGeoResolver:
     """IP 归属地查询器（带缓存与本地库优先策略）。"""
 

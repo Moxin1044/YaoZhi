@@ -16,7 +16,12 @@ from typing import Optional, Sequence
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-from core.ipgeo import IPGeoResolver
+from core.ipgeo import (
+    SPECIAL_LOCATIONS,
+    IPGeoResolver,
+    extract_city,
+    extract_province,
+)
 from core.parser import LogRecord
 from core.useragent import parse_ua
 
@@ -556,6 +561,84 @@ class LogAnalyzer:
         self._cache["heatmap"] = result
         return result
 
+    # ------------------------------------------------------------------ 地域分布
+
+    def geo_distribution(self, limit_ips: int = 300) -> dict:
+        """按省级行政区聚合访问量，用于地图热力图。
+
+        为避免大量 IP 触发过多远程查询，仅解析访问量最高的 limit_ips 个 IP，
+        并回报覆盖率（已解析 IP 占总请求的比例）。
+        """
+        cache_key = f"geo:{limit_ips}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]  # type: ignore[return-value]
+
+        total = len(self.records)
+        if total == 0:
+            empty = {"total": 0, "provinces": [], "internal": 0, "overseas": 0,
+                     "unknown": 0, "unresolved": 0, "max": 0, "coverage": 0.0}
+            self._cache[cache_key] = empty
+            return empty
+
+        per_ip: Counter = Counter()
+        per_ip_bytes: Counter = Counter()
+        for record in self.records:
+            per_ip[record.ip] += 1
+            per_ip_bytes[record.ip] += record.size
+
+        candidates = per_ip.most_common(max(1, limit_ips))
+        locations = self.geo.resolve_many([ip for ip, _ in candidates])
+
+        provinces: dict[str, dict] = {}
+        internal = overseas = unknown = 0
+
+        for ip, count in candidates:
+            location = locations.get(ip, "")
+            province = extract_province(location)
+            if province:
+                item = provinces.get(province)
+                if item is None:
+                    item = {"name": province, "requests": 0, "bandwidth": 0,
+                            "uv": 0, "cities": Counter()}
+                    provinces[province] = item
+                item["requests"] += count
+                item["bandwidth"] += per_ip_bytes[ip]
+                item["uv"] += 1
+                city = extract_city(location, province)
+                if city:
+                    item["cities"][city] += count
+            elif location in SPECIAL_LOCATIONS:
+                internal += count
+            elif not location or location == "未知":
+                unknown += count
+            else:
+                overseas += count
+
+        resolved_requests = sum(count for _, count in candidates)
+        unresolved = total - resolved_requests
+
+        items = sorted(provinces.values(), key=lambda x: x["requests"], reverse=True)
+        for item in items:
+            item["percent"] = _pct(item["requests"], total)
+            item["top_cities"] = [
+                {"name": name, "count": count}
+                for name, count in item["cities"].most_common(5)
+            ]
+            del item["cities"]
+
+        result = {
+            "total": total,
+            "provinces": items,
+            "internal": internal,
+            "overseas": overseas,
+            "unknown": unknown,
+            "unresolved": unresolved,
+            "max": max((item["requests"] for item in items), default=0),
+            "coverage": _pct(resolved_requests, total),
+        }
+        self._cache[cache_key] = result
+        return result
+
     # ------------------------------------------------------------------ 汇总
 
     def analyze_all(self, top_limit: int = 20) -> dict:
@@ -572,6 +655,7 @@ class LogAnalyzer:
             "errors": self.errors(50),
             "suspicious": self.suspicious(30),
             "heatmap": self.heatmap(),
+            "geo": self.geo_distribution(),
         }
 
 

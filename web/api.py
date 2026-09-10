@@ -124,7 +124,7 @@ def info():
         "version": "2.0.0",
         "dimensions": [
             "overview", "timeseries", "status_codes", "top_urls", "top_ips",
-            "clients", "referers", "methods", "errors", "suspicious", "heatmap",
+            "clients", "referers", "methods", "errors", "suspicious", "heatmap", "geo",
         ],
         "intervals": ["minute", "hour", "day", "month"],
         "supported_formats": ["nginx combined", "nginx common", "apache combined"],
@@ -268,6 +268,13 @@ def task_suspicious(task_id, row, results):
 @require_task
 def task_heatmap(task_id, row, results):
     return ok(results.get("heatmap", {}))
+
+
+@bp.get("/tasks/<task_id>/geo")
+@require_task
+def task_geo(task_id, row, results):
+    """按省级行政区聚合的访问分布（地图热力图数据）。"""
+    return ok(results.get("geo", {}))
 
 
 @bp.get("/tasks/<task_id>/export")

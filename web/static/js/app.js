@@ -227,6 +227,118 @@
     }), true);
   }
 
+  /* 省份短名 → 地图 GeoJSON 中的全名 */
+  var PROVINCE_FULL_NAME = {
+    "北京": "北京市", "天津": "天津市", "河北": "河北省", "山西": "山西省",
+    "内蒙古": "内蒙古自治区", "辽宁": "辽宁省", "吉林": "吉林省", "黑龙江": "黑龙江省",
+    "上海": "上海市", "江苏": "江苏省", "浙江": "浙江省", "安徽": "安徽省",
+    "福建": "福建省", "江西": "江西省", "山东": "山东省", "河南": "河南省",
+    "湖北": "湖北省", "湖南": "湖南省", "广东": "广东省", "广西": "广西壮族自治区",
+    "海南": "海南省", "重庆": "重庆市", "四川": "四川省", "贵州": "贵州省",
+    "云南": "云南省", "西藏": "西藏自治区", "陕西": "陕西省", "甘肃": "甘肃省",
+    "青海": "青海省", "宁夏": "宁夏回族自治区", "新疆": "新疆维吾尔自治区",
+    "台湾": "台湾省", "香港": "香港特别行政区", "澳门": "澳门特别行政区"
+  };
+
+  var chinaMapReady = false;
+
+  function renderGeo(geo) {
+    var c = chart("chartGeo");
+    if (!c) return;
+
+    var provinces = (geo && geo.provinces) || [];
+    var meta = document.getElementById("geoMeta");
+    if (meta) {
+      meta.textContent = provinces.length
+        ? "覆盖 " + geo.coverage + "% 请求 · 内网 " + num(geo.internal) + " 次 · 海外 " +
+          num(geo.overseas) + " 次 · 未知 " + num(geo.unknown) + " 次"
+        : "";
+    }
+
+    function draw() {
+      var colors = themeColors();
+      var dark = document.documentElement.getAttribute("data-theme") !== "light";
+      var data = provinces.map(function (p) {
+        return { name: PROVINCE_FULL_NAME[p.name] || p.name, value: p.requests, raw: p };
+      });
+      c.setOption({
+        tooltip: {
+          trigger: "item",
+          backgroundColor: "rgba(15,23,42,0.92)", borderWidth: 0,
+          textStyle: { color: "#e6edf7", fontSize: 12 },
+          formatter: function (p) {
+            if (!p.data || p.data.value == null) return p.name + "<br/>无数据";
+            var raw = p.data.raw || {};
+            var cities = (raw.top_cities || []).map(function (ct) { return ct.name + "(" + ct.count + ")"; }).join("、");
+            return p.name + "<br/>请求 " + num(p.data.value) + "（" + (raw.percent || 0) + "%）" +
+                   "<br/>独立 IP " + (raw.uv || 0) + " · 流量 " + bytes(raw.bandwidth || 0) +
+                   (cities ? "<br/>主要城市：" + cities : "");
+          }
+        },
+        visualMap: {
+          min: 0, max: Math.max(1, geo.max || 1), calculable: true,
+          orient: "vertical", left: 18, bottom: 24,
+          text: ["高", "低"], textStyle: { color: colors.muted, fontSize: 11 },
+          inRange: { color: dark
+            ? ["#12304a", "#12657d", "#1aa3b8", "#37d6e8", "#a7f3fb"]
+            : ["#e0f2fe", "#7dd3fc", "#38bdf8", "#0284c7", "#075985"] }
+        },
+        series: [{
+          type: "map", map: "china", roam: false, zoom: 1.18,
+          left: "center", top: 10, bottom: 10,
+          label: { show: false },
+          itemStyle: {
+            areaColor: dark ? "#16213a" : "#eef2f7",
+            borderColor: dark ? "rgba(148,163,184,0.35)" : "#cbd5e1",
+            borderWidth: 0.6
+          },
+          emphasis: {
+            label: { show: true, color: dark ? "#0b1120" : "#0f172a", fontSize: 11 },
+            itemStyle: { areaColor: colors.series[0] }
+          },
+          data: data
+        }]
+      }, true);
+      c.resize();
+    }
+
+    if (chinaMapReady) {
+      draw();
+    } else {
+      fetch("/static/vendor/china.json")
+        .then(function (r) { return r.json(); })
+        .then(function (geojson) {
+          echarts.registerMap("china", geojson);
+          chinaMapReady = true;
+          draw();
+        })
+        .catch(function () {
+          var el = document.getElementById("chartGeo");
+          if (el) el.innerHTML = '<p class="empty">地图数据加载失败</p>';
+        });
+    }
+
+    // 省份明细表
+    var body = document.getElementById("geoTable").querySelector("tbody");
+    if (!provinces.length) {
+      body.innerHTML = '<tr><td colspan="6" class="empty">暂无可识别的境内地域数据</td></tr>';
+      return;
+    }
+    body.innerHTML = provinces.map(function (p) {
+      var cities = (p.top_cities || []).map(function (ct) {
+        return escapeHtml(ct.name) + (ct.count ? "×" + ct.count : "");
+      }).join("、");
+      return "<tr>" +
+        "<td>" + escapeHtml(p.name) + "</td>" +
+        '<td class="num">' + num(p.requests) + "</td>" +
+        '<td class="num">' + pct(p.percent) + "</td>" +
+        '<td class="num">' + num(p.uv) + "</td>" +
+        '<td class="num">' + bytes(p.bandwidth) + "</td>" +
+        "<td>" + (cities || "-") + "</td>" +
+        "</tr>";
+    }).join("");
+  }
+
   function renderHeatmap(heatmap) {
     var c = chart("chartHeatmap");
     if (!c) return;
@@ -337,6 +449,7 @@
     renderBrowser(result.clients || {});
     renderMethod(result.methods || []);
     renderReferer(result.referers || {});
+    renderGeo(result.geo || {});
     renderHeatmap(result.heatmap || {});
     renderIps(result.top_ips || []);
     renderErrors(result.errors || {});
